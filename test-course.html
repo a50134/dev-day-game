@@ -1,0 +1,74 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>course self-check</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 課程練習自我檢查：每個練習「起始內容必須不過、參考解答必須過」
+import { COURSES } from './src/courses.js';
+import { mountTw, compareTw, mountLive, runLive } from './src/practice.js';
+import { loadTS, judge } from './src/ts.js';
+
+const lines = [];
+let bad = 0;
+const rep = (ok, m) => { if (!ok) bad++; lines.push((ok ? 'OK   ' : 'FAIL ') + m); out.textContent = lines.join('\n'); };
+
+const tsFix = {
+  ts1: (s) => s.replace("'3800'", '3800').replace("'no'", 'false'),
+  ts2: (s) => s.replace('// TODO: 補上 date、venue、price（各是什麼型別？）', 'date: string; venue: string; price: number;'),
+  ts3: (s) => s.replace('): string { // TODO: 回傳的是什麼型別？', '): number {').replace("count: '2'", 'count: 2'),
+  ts4: (s) => s.replace("  return 'NT$ ' + price.toFixed(0); // TODO: 字串沒有 toFixed", "  if (typeof price === 'string') return price;\n  return 'NT$ ' + price.toFixed(0);"),
+  ts5: (s) => s.replace('const firstId: string', 'const firstId: number'),
+  'ts-c1-p0': (s) => s.replace('  // TODO: 定義 name、price、qty、note', '  name: string;\n  price: number;\n  qty: number;\n  note?: string;'),
+  'ts-c1-p1': (s) => s.replace('const rows: string =', 'const rows: string[][] =').replace('const firstRow: number[]', 'const firstRow: string[]').replace('const total: string', 'const total: number'),
+  'ts-c2-p0': (s) => s.replace('type ApiResult = Ok;', 'type ApiResult = Ok | Fail;'),
+  'ts-c2-p1': (s) => s.replace('{ value: 123 }', "{ value: '小明' }").replace('const n: number', 'const n: string[]'),
+};
+
+// 所有選擇題的選項都要真的顯示出文字（不能被當成 HTML 標籤吃掉）
+const { optHtml } = await import('./src/course-ui.js');
+const choices = COURSES.flatMap((c) => c.chapters.flatMap((ch) => [...ch.lessons.flatMap((l) => l.steps.map((st) => st.check)), ...ch.quiz])).filter((q) => q.type === 'choice');
+let emptyOpts = 0, total = 0;
+for (const q of choices) for (const o of q.options) {
+  const b = document.createElement('button');
+  b.innerHTML = optHtml(o);
+  total++;
+  if (!b.textContent.trim() || b.children.length) { emptyOpts++; lines.push('FAIL 選項顯示不出來：' + o); }
+}
+rep(emptyOpts === 0, `${choices.length} 題選擇題、${total} 個選項都能顯示文字`);
+
+const ts = await loadTS();
+const tgt = document.createElement('iframe'), mine = document.createElement('iframe');
+for (const f of [tgt, mine]) { f.style.cssText = 'width:600px;height:300px'; document.body.append(f); }
+
+for (const c of COURSES) for (const ch of c.chapters) {
+  const ex = [...ch.lessons.map((l) => [l.id, l.final]), ...ch.projects.map((p, i) => [`${ch.id}-p${i}`, p])];
+  for (const [id, e] of ex) {
+    if (e.kind === 'ts') {
+      const fix = tsFix[id];
+      if (!fix) { rep(false, `${id} 缺少測試用解答`); continue; }
+      const before = judge(ts, e, e.starter), after = judge(ts, e, fix(e.starter));
+      rep(before.length > 0 && after.length === 0, `${id} (ts)　起始紅線 ${before.length}　修好後 ${JSON.stringify(after)}`);
+    } else if (e.kind === 'react' || e.kind === 'vue') {
+      const mustFails = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
+      await mountLive(mine, e.kind, e.starter);
+      const f0 = (await runLive(mine, e)).length + mustFails(e.starter);
+      await mountLive(mine, e.kind, e.solution);
+      const f1 = [...(await runLive(mine, e)), ...Array(mustFails(e.solution)).fill('must')];
+      rep(f0 > 0 && f1.length === 0, `${id} (${e.kind})　起始不通過 ${f0} 項　解答未通過 ${JSON.stringify(f1)}`);
+    } else {
+      await mountTw(tgt, e.build(e.solution));
+      const starter = e.build({}), sol = e.build(e.solution);
+      await mountTw(mine, starter);
+      const f0 = compareTw(mine, tgt, e.checks);
+      await mountTw(mine, sol);
+      const f1 = compareTw(mine, tgt, e.checks);
+      const mustFail = (e.must || []).filter((m) => !m.re.test(starter)).length === (e.must || []).length;
+      const mustOk = (e.must || []).every((m) => m.re.test(sol));
+      rep(f0.length > 0 && f1.length === 0 && mustFail && mustOk, `${id} (tw)　起始不一樣 ${f0.length} 處　解答不一樣 ${JSON.stringify(f1)}`);
+    }
+  }
+}
+lines.push(bad ? `FAILED ${bad}` : 'ALL OK');
+out.textContent = lines.join('\n');
+document.title = bad ? 'FAIL' : 'PASS';
+</script>

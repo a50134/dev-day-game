@@ -1,0 +1,71 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試：在 iframe 裡真的操作遊戲（走動、互動、上課、測驗），全部通過才顯示 ALL OK
+const log = [];
+const show = () => (document.getElementById('out').textContent = log.join('\n'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1200px;height:900px';
+document.body.append(f);
+localStorage.clear();
+f.src = 'index.html?view=2d';
+await new Promise((r) => (f.onload = r));
+await wait(800);
+const w = f.contentWindow, d = f.contentDocument;
+const q = (s) => d.querySelector(s), qa = (s) => [...d.querySelectorAll(s)];
+const click = async (el) => { el.click(); await wait(150); };
+const key = async (k) => { d.dispatchEvent(new w.KeyboardEvent('keydown', { key: k, bubbles: true })); await wait(60); };
+const btnText = (t) => qa('button').find((b) => b.textContent.includes(t));
+
+ok(q('h1')?.textContent.includes('前端工程師的一天'), '公司選擇畫面');
+await click(btnText('進入公司'));
+ok(q('.map') && q('#me'), '進入辦公室地圖');
+const px = () => [parseInt(q('#me').style.left.match(/\*(\d+)/)[1]), parseInt(q('#me').style.top.match(/\*(\d+)/)[1])];
+const [x0, y0] = px();
+await key('ArrowLeft');
+ok(px()[0] === x0 - 1, '方向鍵可以走動');
+// 走到 PM（2,2）旁邊：目標 (3,3)
+let guard = 0;
+while ((px()[0] !== 3 || px()[1] !== 3) && guard++ < 30) { await key(px()[0] > 3 ? 'a' : 'd'); if (px()[0] === 3) await key(px()[1] > 3 ? 'w' : 's'); }
+ok(px()[0] === 3 && px()[1] === 3, '走到 PM 旁邊 ' + px());
+ok(q('#ptext').textContent.includes('PM') || q('#ptext').textContent.includes('小專'), '出現互動提示');
+await key(' ');
+ok(q('h2')?.textContent.includes('需求會議'), '互動後進入需求會議');
+await click(btnText('決定了'));
+ok(q('.map'), '需求會議後回到辦公室');
+// 沒到教室前走去別人那裡，不應該觸發
+// 走到教室門口 (12,4)
+guard = 0;
+while ((px()[0] !== 12 || px()[1] !== 4) && guard++ < 60) { if (px()[1] !== 5 && px()[0] < 12) await key(px()[1] < 5 ? 's' : 'w'); else if (px()[0] < 12) await key('d'); else await key(px()[1] < 4 ? 's' : 'w'); }
+ok(px()[0] === 12 && px()[1] === 4, '走到教室門口 ' + px());
+await key('e');
+ok(q('h1')?.textContent.includes('教室'), '進入教室');
+await click(btnText('上課'));
+ok(q('h2')?.textContent.includes('第 1 堂'), '開始第一堂 TS 課');
+// 小步驟：答對才能往下
+const opts = () => qa('.qc .opt');
+await click(opts()[0]); // 第一題正解是 index 1
+ok(!q('#nx button'), '答錯不能往下');
+await click(opts()[1]);
+ok(q('#nx button'), '答對出現「下一步」');
+await click(q('#nx button'));
+ok(qa('.chip').length === 4 && !q('.fillin'), '填空題變成 4 個選項，沒有輸入框');
+await click(qa('.chip').find((c) => c.textContent !== 'boolean'));
+ok(!q('#nx button'), '選錯不能往下');
+await click(qa('.chip').find((c) => c.textContent === 'boolean'));
+ok(q('#nx button'), '選對可以往下');
+await click(q('#nx button'));
+await click(opts()[1]);
+await click(q('#nx button'));
+ok(q('h2')?.textContent.includes('第 1 堂') && q('#exbox'), '進入總練習');
+await wait(8000); // 載入 TS 編譯器 + 編輯器
+ok(q('#exbox .exres')?.textContent.includes('還有'), '總練習一開始有紅線：' + (q('#exbox .exres')?.textContent || '').slice(0, 40));
+document.getElementById('out').textContent = log.join('\n') + '\n' + (log.some((l) => l.startsWith('FAIL')) ? 'FAILED' : 'ALL OK');
+document.title = log.some((l) => l.startsWith('FAIL')) ? 'FAIL' : 'PASS';
+</script>

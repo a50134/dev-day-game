@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke8</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 8：教室／上課／測驗／專案衝刺上方的 3D 小舞台
+const log = [];
+const show = () => (out.textContent = log.join('\n') + (log.some((l) => /FAIL|ERROR/.test(l)) ? '' : '\nALL OK'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1000px;height:900px';
+document.body.append(f);
+const d = () => f.contentDocument, w = () => f.contentWindow, q = (s) => d().querySelector(s);
+const load = async (save) => {
+  localStorage.clear(); localStorage.setItem('ddg-save', JSON.stringify(save));
+  f.src = 'index.html?r=' + Math.random(); await new Promise((r) => (f.onload = r)); await wait(6000);
+};
+const check = async (name, save, step) => {
+  await load(save);
+  ok(!!q('#st3d canvas'), name + '：有 3D 小舞台');
+  const o = w().__o3d; for (let i = 0; i < 20; i++) o?.step(0.05);
+  ok(o && o.frames > 0, name + '：有繪製（frames=' + o?.frames + '）');
+  ok(!!q('#homebtn'), name + '：回辦公室按鈕還在');
+};
+await check('教室', { phase: 'classroom', pos: { x: 3, y: 3 }, goal: 'req', back: 'office' });
+await check('上課', { phase: 'lesson', cur: { lesson: 'ts1', step: 0 }, goal: 'req', back: 'office' });
+await check('測驗', { phase: 'quiz', cur: { quiz: 'ts-c1', i: 0, right: 0 }, goal: 'req', back: 'office' });
+await check('專案衝刺開場', { phase: 'workday', goal: 'req', back: 'office' });
+await check('高壓力衝刺', { phase: 'workday', goal: 'req', back: 'office', stats: { progress: 0, quality: 50, stress: 90, team: 50 } });
+await load({ phase: 'office', pos: { x: 3, y: 3 }, goal: 'req', back: 'office' });
+ok(!q('#st3d') && !!q('.map3d canvas'), '辦公室沒有重複小舞台');
+await load({ phase: 'classroom', pos: { x: 3, y: 3 }, goal: 'req', back: 'office' });
+q('#homebtn').click(); await wait(3000);
+ok(!q('#st3d') && !!q('.map3d canvas'), '從教室回辦公室後只剩大畫面');
+</script>

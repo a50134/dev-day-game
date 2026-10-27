@@ -1,0 +1,81 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke5</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 5：專案衝刺——從辦公室看板進入，用不同策略玩完 10 天，檢查流程、時間帳、存檔與勝負
+const log = [];
+const show = () => (out.textContent = log.join('\n'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1200px;height:900px';
+document.body.append(f);
+const camp = () => JSON.parse(localStorage.getItem('ddg-save')).camp;
+
+// policy.work(picks) 選哪個工單；policy.event(opts) 選哪個選項；policy.overtime 是否加班
+const run = async (name, seed, policy) => {
+  localStorage.clear();
+  localStorage.setItem('ddg-save', JSON.stringify({ phase: 'office', pos: { x: 8, y: 3 }, goal: 'req', wdSeed: seed, back: 'office' }));
+  f.src = 'index.html?view=2d&r=' + Math.random();
+  await new Promise((r) => (f.onload = r));
+  await wait(800);
+  const d = () => f.contentDocument, q = (s) => d().querySelector(s), qa = (s) => [...d().querySelectorAll(s)];
+  const key = async (k) => { d().body.dispatchEvent(new (f.contentWindow.KeyboardEvent)('keydown', { key: k, bubbles: true })); await wait(60); };
+  const btn = (t) => qa('button').find((b) => b.textContent.includes(t));
+  await key('w'); await key(' ');
+  ok(q('h1')?.textContent.includes('專案衝刺'), `${name}：從任務看板進入`);
+  btn('開始第 1 天').click(); await wait(150);
+  let steps = 0, reloaded = false, sawReview = 0, sawMorning = 0;
+  while (!/專案如期上線|專案延期|代價不小/.test(q('h1')?.textContent || '') && steps++ < 4000) {
+    const h1 = q('h1')?.textContent || '', h2 = q('h2')?.textContent || '';
+    if (h1.includes('☀️')) {
+      sawMorning++;
+      if (!reloaded && camp().day === 3) { // 存檔測試：重新整理後要回到同一個畫面
+        reloaded = true;
+        const before = h1;
+        f.contentWindow.location.reload(); await new Promise((r) => (f.onload = r)); await wait(800);
+        ok(q('h1')?.textContent === before, `${name}：第 3 天早上重新整理後回到同一畫面（${before.trim()}）`);
+      }
+      btn('開始這一天').click();
+    } else if (h2.includes('下班時間')) {
+      const p = policy.overtime ? qa('.pick button').find((b) => b.textContent.includes('加班 2')) : null;
+      (p || btn('準時下班')).click();
+    } else if (h1.includes('檢討')) { sawReview++; qa('button.primary')[0].click(); }
+    else if (qa('.stage .opt').length) qa('.stage .opt')[policy.event(qa('.stage .opt').length)].click();
+    else {
+      const picks = qa('.stage .pick').filter((p) => p.querySelector('b'));
+      if (!picks.length) btn('休息 30 分鐘').click(); // 工單都做完了，只剩休息
+      else {
+        const bs = [...picks[policy.work(picks.length)].querySelectorAll('button')];
+        (bs.find((b) => b.textContent.includes('60')) || bs[0]).click();
+      }
+    }
+    await wait(40);
+  }
+  const C = camp();
+  ok(/專案如期上線|專案延期|代價不小/.test(q('h1')?.textContent || ''), `${name}：玩到結果畫面（${steps} 步、${sawMorning} 個早晨、${sawReview} 次檢討）→ ${C.outcome}`);
+  ok(C.hist.length === C.day && C.hist.every((h) => Number.isFinite(h.focus) && h.focus >= 0 && h.L >= 0), `${name}：每天都有記錄（${C.hist.length} 天）`);
+  const w = C.w, fs = w.tl.filter((x) => x === 'focus').length;
+  ok(w.tl.every((x) => x) && Math.abs(w.spent.focus + w.spent.lost - fs * 0.5 - w.spent.overtime * 0.9) < 1e-9, `${name}：最後一天時間帳對得上`);
+  ok(C.tickets.every((t) => t.left >= 0 && t.left <= t.effort + 8), `${name}：工單剩餘工時合理`);
+  ok(!!q('.card') && /衝刺總結/.test(q('body').textContent), `${name}：結果畫面有衝刺總結`);
+  // 回辦公室：就算中途按過標頭的教室按鈕（會把「上一個畫面」改成衝刺），也要能回去
+  btn('教室').click(); await wait(200);
+  btn('返回').click(); await wait(200);
+  ok(/專案如期上線|專案延期|代價不小/.test(q('h1')?.textContent || ''), `${name}：從教室返回後仍在結果畫面`);
+  btn('回辦公室').click(); await wait(300);
+  ok(!!q('.map') && !!q('#me'), `${name}：按「回辦公室」真的回到辦公室`);
+  return C;
+};
+const A = await run('專注大專案', 12345, { work: () => 0, event: () => 0, overtime: false });
+ok(A.outcome === 'win', `專注大專案的策略可以如期完成（結果 ${A.outcome}，逾期 ${A.lateCount} 次，病假 ${A.sickDays} 天）`);
+const B = await run('只做小單', 12345, { work: (n) => n - 1, event: (n) => n - 1, overtime: false });
+ok(B.outcome === 'late', `只做小單、不碰大專案會延期（結果 ${B.outcome}）`);
+const Cc = await run('每天加班', 777, { work: () => 0, event: () => 0, overtime: true });
+ok(Cc.sickDays >= 1, `每天加班會把自己累垮（病假 ${Cc.sickDays} 天，最後壓力 ${JSON.parse(localStorage.getItem('ddg-save')).stats.stress}）`);
+document.title = log.some((l) => !l.startsWith('OK')) ? 'FAIL' : 'PASS';
+log.push(document.title === 'PASS' ? 'ALL OK' : 'FAILED'); show();
+</script>

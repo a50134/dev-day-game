@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke4</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 4：React、Vue、TypeScript 總練習——貼上解答、按「送出檢查」、確認能完成
+import { COURSES } from './src/courses.js';
+const log = [];
+const show = () => (out.textContent = log.join('\n'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const lessons = COURSES.flatMap((c) => c.chapters.flatMap((ch) => ch.lessons));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1200px;height:900px';
+document.body.append(f);
+for (const [id, fix] of [['rc3', null], ['vu2', null], ['ts2', (s) => s.replace('// TODO: 補上 date、venue、price（各是什麼型別？）', 'date: string; venue: string; price: number;')]]) {
+  const lesson = lessons.find((l) => l.id === id);
+  localStorage.clear();
+  localStorage.setItem('ddg-save', JSON.stringify({ phase: 'lesson', cur: { lesson: id, step: lesson.steps.length }, prog: {} }));
+  f.src = 'index.html?' + Math.random();
+  await new Promise((r) => (f.onload = r));
+  await wait(5000);
+  const d = f.contentDocument;
+  f.contentWindow.confirm = () => true;
+  const answer = fix ? fix(lesson.final.starter) : lesson.final.solution;
+  d.querySelector('.cm-content').focus();
+  d.execCommand('selectAll');
+  d.execCommand('insertText', false, answer);
+  await wait(1500);
+  ok(!!d.querySelector('.chk'), `${id} 有「送出檢查」按鈕`);
+  d.querySelector('.chk').click();
+  await wait(lesson.final.kind === 'ts' ? 4000 : 5000);
+  ok(d.querySelector('.exres')?.textContent.includes('完成'), `${id} 貼上正確答案後顯示完成：${(d.querySelector('.exres')?.textContent || '').slice(0, 50)}`);
+  ok(!!d.querySelector('#nx button'), `${id} 出現完成按鈕`);
+}
+document.title = log.some((l) => !l.startsWith('OK')) ? 'FAIL' : 'PASS';
+log.push(document.title === 'PASS' ? 'ALL OK' : 'FAILED'); show();
+</script>

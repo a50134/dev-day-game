@@ -1,0 +1,70 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke7</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 7：每個畫面都有「回辦公室」；主線中途離開後，辦公室的 ❗ 會指回去，並能接續
+import { EVENTS } from './src/scenes.js';
+const log = [];
+const show = () => (out.textContent = log.join('\n'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1200px;height:900px';
+document.body.append(f);
+const tokens = { primary: '#e11d48', font: '"Noto Sans TC", sans-serif', radius: 6 };
+const open = async (save) => {
+  localStorage.clear();
+  if (save) localStorage.setItem('ddg-save', JSON.stringify(save));
+  f.src = 'index.html?view=2d&r=' + Math.random();
+  await new Promise((r) => (f.onload = r));
+  await wait(900);
+};
+const d = () => f.contentDocument, w = () => f.contentWindow, q = (s) => d().querySelector(s), qa = (s) => [...d().querySelectorAll(s)];
+const key = async (k) => { d().body.dispatchEvent(new (w().KeyboardEvent)('keydown', { key: k, bubbles: true })); await wait(80); };
+const marks = () => qa('.mark').map((m) => m.textContent).join('');
+const base = { pos: { x: 5, y: 5 }, back: 'company', tokens, tech: { ts: false, tailwind: false }, levels: ['list'], li: 0 };
+
+const cases = [
+  ['教室', { phase: 'classroom' }],
+  ['上課（TypeScript 第 1 堂）', { phase: 'lesson', cur: { lesson: 'ts1', step: 0 } }],
+  ['TS 練習場', { phase: 'tsmenu' }],
+  ['專案衝刺開場', { phase: 'workday' }],
+  ['需求會議', { phase: 'req', goal: 'req' }],
+  ['設計討論', { phase: 'design', goal: 'design' }],
+  ['設計稿來回修改', { phase: 'review', goal: 'design' }],
+  ['技術選擇', { phase: 'tech', goal: 'tech' }],
+  ['實作關卡', { phase: 'level', goal: 'level' }],
+  ['突發事件', { phase: 'event', goal: 'level', events: [EVENTS[0]] }],
+  ['結算', { phase: 'end', goal: 'level' }],
+];
+for (const [name, extra] of cases) {
+  await open({ ...base, ...extra });
+  ok(!!q('#homebtn'), `${name}：上方有「回辦公室」按鈕`);
+  q('#homebtn').click(); await wait(500);
+  ok(!!q('.map') && !!q('#me'), `${name}：按下去回到辦公室`);
+}
+// 公司選擇畫面（還沒開始）不顯示
+await open(null);
+ok(!q('#homebtn'), '公司選擇畫面沒有回辦公室按鈕（還沒進辦公室）');
+
+// 接續：突發事件中途離開 → 辦公室 ❗ 在組長身上 → 走過去互動 → 回到突發事件
+await open({ ...base, phase: 'event', goal: 'level', events: [EVENTS[0]] });
+q('#homebtn').click(); await wait(500);
+ok(marks().includes('❗'), `突發事件中途離開後，辦公室有 ❗（${marks()}）`);
+await open({ ...base, phase: 'office', goal: 'event', pos: { x: 10, y: 6 }, events: [EVENTS[0]] });
+await key(' ');
+ok(q('h2')?.textContent.includes('突發事件'), '找組長老王互動後，接回突發事件');
+// 接續：實作關卡中途離開 → 回座位 → 回到關卡
+await open({ ...base, phase: 'office', goal: 'level', pos: { x: 3, y: 6 } });
+await key(' ');
+ok(q('.split') && q('#edbox'), '回自己座位互動後，回到實作關卡');
+// 接續：結算畫面離開 → 找組長 → 再看到結算
+await open({ ...base, phase: 'office', goal: 'end', pos: { x: 10, y: 6 } });
+await key(' ');
+ok(q('h1')?.textContent.includes('下班了'), '離開結算畫面後，找組長可以再看結算');
+document.title = log.some((l) => !l.startsWith('OK')) ? 'FAIL' : 'PASS';
+log.push(document.title === 'PASS' ? 'ALL OK' : 'FAILED'); show();
+</script>

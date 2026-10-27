@@ -1,0 +1,44 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke6</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 6：3D 辦公室——畫面出現、角色會走、互動、切換 2D、離開時釋放
+const log = [];
+const show = () => (out.textContent = log.join('\n'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1200px;height:900px';
+document.body.append(f);
+localStorage.clear();
+localStorage.setItem('ddg-save', JSON.stringify({ phase: 'office', pos: { x: 3, y: 3 }, goal: 'req', pending: ['ts-c1'], back: 'office' }));
+f.src = 'index.html?r=' + Math.random();
+await new Promise((r) => (f.onload = r));
+await wait(7000);
+const d = () => f.contentDocument, w = () => f.contentWindow, q = (s) => d().querySelector(s);
+const key = async (k, ms = 60) => { d().body.dispatchEvent(new (w().KeyboardEvent)('keydown', { key: k, bubbles: true })); await wait(ms); };
+const o3 = () => w().__o3d;
+ok(!!q('.map3d canvas'), '出現 3D 畫面（canvas）');
+ok(o3() && o3().frames > 0, `3D 場景有在繪製（frames=${o3()?.frames}）`);
+ok(o3() && Math.abs(o3().x - 3) < 0.05 && Math.abs(o3().z - 3) < 0.05, `主角在起點 (${o3()?.x}, ${o3()?.z})`);
+await key('d'); for (let i = 0; i < 12; i++) o3().step(0.05);
+ok(o3() && o3().x > 3.5, `走路中途主角的位置在移動（x=${o3()?.x?.toFixed(2)}）`);
+for (let i = 0; i < 12; i++) o3().step(0.05);
+ok(o3() && Math.abs(o3().x - 4) < 0.1, `按 → 後主角走到 x=4（現在 ${o3()?.x?.toFixed(2)}）`);
+await key('a'); for (let i = 0; i < 30; i++) o3().step(0.05);
+ok(o3() && Math.abs(o3().x - 3) < 0.1, '按 ← 後走回 x=3');
+ok(q('#ptext')?.textContent.includes('小專') || q('#ptext')?.textContent.includes('互動'), '靠近 PM 出現互動提示');
+// 切換 2D
+[...d().querySelectorAll('button')].find((b) => b.textContent.includes('切換 2D')).click(); await wait(500);
+ok(!!q('.map:not(.map3d) #me') && !q('canvas'), '切換成 2D 後出現 2D 地圖、3D 已移除');
+[...d().querySelectorAll('button')].find((b) => b.textContent.includes('切換 3D')).click(); await wait(6000);
+ok(!!q('.map3d canvas'), '再切回 3D');
+await key(' ');
+ok(q('h2')?.textContent.includes('需求會議'), '3D 下按空白鍵和 PM 互動，進入需求會議');
+ok(!q('canvas'), '離開辦公室後 3D 畫面已移除（釋放資源）');
+document.title = log.some((l) => !l.startsWith('OK')) ? 'FAIL' : 'PASS';
+log.push(document.title === 'PASS' ? 'ALL OK' : 'FAILED'); show();
+</script>

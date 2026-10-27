@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>self-check</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 自我檢查：每關「起始程式必須不過、參考解答必須過」。開 test.html 看結果，全部 OK 才算正常。
+import { LEVELS } from './src/levels.js';
+import { mount } from './src/sandbox.js';
+import { runCheck } from './src/checks.js';
+
+const tokens = { primary: '#e11d48', font: '"Noto Sans TC", sans-serif', radius: 6 };
+const lines = [];
+let bad = 0;
+for (const lv of LEVELS) {
+  for (const [kind, wantPass] of [['starter', false], ['solution', true]]) {
+    const f = document.createElement('iframe');
+    document.body.append(f);
+    await mount(f, { code: lv[kind + 'Jsx'](tokens), css: lv[kind + 'Css'](tokens), tech: { ts: false, tailwind: false } });
+    const fails = await runCheck(lv.id, f, tokens);
+    const ok = wantPass ? !fails.length : fails.length > 0;
+    if (!ok) bad++;
+    lines.push(`${ok ? 'OK  ' : 'FAIL'} ${lv.id}/${kind} ${fails.join(' | ')}`);
+    f.remove();
+  }
+}
+lines.push(bad ? `FAILED ${bad}` : 'ALL OK');
+out.textContent = lines.join('\n');
+document.title = bad ? 'FAIL' : 'PASS';
+</script>

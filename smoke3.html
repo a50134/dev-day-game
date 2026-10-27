@@ -1,0 +1,50 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke3</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 3：Tailwind 第 1 堂總練習——真的在編輯器輸入、按「檢查」、看能不能完成
+const log = [];
+const show = () => (out.textContent = log.join('\n'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1200px;height:900px';
+document.body.append(f);
+localStorage.clear();
+localStorage.setItem('ddg-save', JSON.stringify({ phase: 'lesson', cur: { lesson: 'tw1', step: 3 }, prog: {} }));
+f.src = 'index.html?' + Math.random();
+await new Promise((r) => (f.onload = r));
+await wait(5000);
+const d = f.contentDocument, w = f.contentWindow;
+const q = (s) => d.querySelector(s);
+ok(!!q('.cm-content'), '編輯器出現（CodeMirror）');
+ok(q('.mine')?.contentDocument?.querySelector('#t')?.textContent.includes('星光'), '「你的成果」預覽有畫面：' + (q('.mine')?.contentDocument?.body?.innerHTML || '(空)').slice(0, 80));
+ok(q('.tgt')?.contentDocument?.querySelector('#t')?.textContent.includes('星光'), '「目標」預覽有畫面');
+// 在編輯器輸入答案
+const c = q('.cm-content');
+c.focus();
+d.execCommand('selectAll');
+d.execCommand('insertText', false, '<h1 id="t" class="text-2xl font-bold">星光巡迴演唱會</h1>');
+await wait(2500);
+ok(q('.cm-content').textContent.includes('text-2xl'), '編輯器收到輸入：' + q('.cm-content').textContent.slice(0, 60));
+ok(q('.chk')?.textContent.includes('送出檢查') && q('.rst') && q('.ans'), '工具列有「送出檢查／重置／看解答」');
+q('.chk').click();
+await wait(3500);
+ok(q('.exres')?.textContent.includes('完成'), '按檢查後顯示完成：' + (q('.exres')?.textContent || '').slice(0, 80));
+ok(!!q('#nx button'), '出現「這堂課完成！回教室」按鈕：' + (q('#nx')?.textContent || '(無)'));
+// 重置：把改壞的內容恢復
+window.confirm = () => true; f.contentWindow.confirm = () => true;
+q('.cm-content').focus(); d.execCommand('selectAll'); d.execCommand('insertText', false, '壞掉了');
+await wait(1200);
+q('.rst').click();
+await wait(1500);
+ok(q('.cm-content').textContent.includes('class=""'), '重置後回到起始內容');
+q('.ans').click();
+await wait(1500);
+ok(q('.cm-content').textContent.includes('text-2xl'), '看解答會填入解答');
+document.title = log.some((l) => !l.startsWith('OK')) ? 'FAIL' : 'PASS';
+log.push(document.title === 'PASS' ? 'ALL OK' : 'FAILED'); show();
+</script>
