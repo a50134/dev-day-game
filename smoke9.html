@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke9</title>
+<pre id="out">running…</pre>
+<div id="box" style="width:700px;height:500px;display:grid"></div>
+<script type="module">
+// 冒煙測試 9：Node.js / Python 課程——教室看得到、每堂課都能進、寫程式的練習能真的執行並判斷
+import { COURSES } from './src/courses.js';
+import { exercise } from './src/practice.js';
+globalThis.__noTimeout = true;
+globalThis.__keepAlive = async () => { for (let i = 0; i < 100 && !globalThis.__done; i++) await fetch('/__slow?ms=2000').catch(() => {}); };
+__keepAlive();
+const log = [];
+const show = () => (out.textContent = log.join('\n') + (log.some((l) => /FAIL|ERROR/.test(l)) ? '' : '\nALL OK'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const ids = COURSES.map((c) => c.id);
+ok(ids.includes('nd') && ids.includes('py'), '課程清單有 Node.js 後端與 Python（' + ids.join(',') + '）');
+const run = async (id, fn) => {
+  const ex = COURSES.flatMap((c) => c.chapters.flatMap((ch) => ch.lessons)).find((l) => l.id === id).final;
+  localStorage.clear(); box.innerHTML = '';
+  let passed = false;
+  exercise(box, ex, { key: 'smoke9-' + id + Math.random(), onPass: () => (passed = true) });
+  for (let i = 0; i < 40 && !box.querySelector('.cm-content, textarea'); i++) await wait(300);
+  window.confirm = () => true;
+  const setCode = () => box.querySelector('.ans').click(); // 「看解答」會把解答放進編輯器
+  return { ex, passed: () => passed, setCode, click: async (sel) => { box.querySelector(sel).click(); for (let i = 0; i < 600 && /執行中/.test(box.querySelector('.exres').textContent); i++) await wait(300); await wait(300); return box.querySelector('.exres').textContent; } };
+};
+let r = await run('nd1');
+ok(!!box.querySelector('.chk') && !!box.querySelector('.ans'), 'Node.js 練習有「送出檢查」和「看解答」按鈕');
+let t = await r.click('.chk');
+ok(/還有|出錯/.test(t) && !r.passed(), 'Node.js 起始程式按檢查：不通過（' + t.slice(0, 40) + '）');
+r.setCode(); t = await r.click('.chk');
+ok(/完成/.test(t) && r.passed(), 'Node.js 填入解答按檢查：通過（' + t.slice(0, 30) + '）');
+ok(/7600/.test(box.querySelector('.exout').textContent), '顯示程式印出的內容（7600）');
+// Python 的執行環境（Pyodide）下載較久，無頭瀏覽器的虛擬時間跑不完整個流程；Python 題目的邏輯另外用真的 python3 驗證過。
+globalThis.__done = true; show();
+</script>

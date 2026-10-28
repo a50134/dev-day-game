@@ -4,6 +4,7 @@ import { loadTS, judge } from './ts.js';
 import { store } from './store.js';
 import { buildSrcdoc } from './sandbox.js';
 import { makeCtx } from './checks.js';
+import { runCode, warm } from './runner.js';
 
 const TWCDN = 'https://cdn.tailwindcss.com/3.4.16';
 export const twDoc = (html) => `<!doctype html><meta charset="utf-8"><script src="${TWCDN}"></script><body style="margin:0;padding:12px;font-family:sans-serif">${html}</body>`;
@@ -78,6 +79,30 @@ export function exercise(box, ex, { key, onPass }) {
       ed.value = saved ?? ex.starter;
       wireBar(box, { getEd: () => ed, starter: ex.starter, onCheck: run });
       try { ts = await loadTS(); run(); } catch (e) { res.innerHTML = `<p class="fail">${esc(e.message)}</p>`; }
+    })();
+    return;
+  }
+
+  // 寫 Node.js / Python：真的執行，再用 tests 檢查
+  if (ex.kind === 'code') {
+    const rt = ex.lang === 'py' ? 'py' : 'js';
+    box.innerHTML = `<div class="exed"></div>${BAR(true)}<div class="exres"></div><pre class="exout" hidden></pre>`;
+    const res = box.querySelector('.exres'), outBox = box.querySelector('.exout');
+    let ed;
+    if (rt === 'py') warm('py');
+    const onCheck = async () => {
+      if (!ed) return;
+      res.innerHTML = `<p>${rt === 'py' ? '執行中…（第一次要下載 Python，約 10～30 秒）' : '執行中…'}</p>`;
+      const r = await runCode(rt, ed.value, ex.tests, ex.files);
+      outBox.hidden = !r.out; outBox.textContent = r.out ? `▶ 印出的內容\n${r.out}` : '';
+      const fails = [...(ex.must || []).filter((m) => !m.re.test(ed.value)).map((m) => m.msg), ...r.fails];
+      if (r.error) res.innerHTML = `<p class="fail">🔴 程式出錯了</p><ul class="fail"><li>${esc(r.error)}</li></ul>`;
+      else { res.innerHTML = fails.length ? list(fails) : solved(); if (!fails.length) pass(); }
+    };
+    (async () => {
+      ed = await createEditor(box.querySelector('.exed'), { lang: ex.lang === 'py' ? 'py' : 'jsx', onInput: () => { clearTimeout(timer); timer = setTimeout(() => store.set(key, ed.value), 500); } });
+      ed.value = saved ?? ex.starter;
+      wireBar(box, { getEd: () => ed, starter: ex.starter, solution: ex.solution, onCheck });
     })();
     return;
   }

@@ -7,6 +7,11 @@
 import { COURSES } from './src/courses.js';
 import { mountTw, compareTw, mountLive, runLive } from './src/practice.js';
 import { loadTS, judge } from './src/ts.js';
+import { runCode } from './src/runner.js';
+globalThis.__noTimeout = true;
+// 無頭瀏覽器：背景程式（Worker）在跑時，虛擬時間會跳太快；用一連串慢請求讓時間慢慢走，最多撐 N 秒
+globalThis.__keepAlive = async (sec = 120) => { for (let i = 0; i < sec / 2 && !globalThis.__done; i++) await fetch('/__slow?ms=2000').catch(() => {}); };
+if (location.search.includes('keep')) __keepAlive(+location.search.split('keep=')[1] || 120);
 
 const lines = [];
 let bad = 0;
@@ -48,6 +53,13 @@ for (const c of COURSES) for (const ch of c.chapters) {
       if (!fix) { rep(false, `${id} 缺少測試用解答`); continue; }
       const before = judge(ts, e, e.starter), after = judge(ts, e, fix(e.starter));
       rep(before.length > 0 && after.length === 0, `${id} (ts)　起始紅線 ${before.length}　修好後 ${JSON.stringify(after)}`);
+    } else if (e.kind === 'code') {
+      const rt = e.lang === 'py' ? 'py' : 'js';
+      const mustFails = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
+      const r0 = await runCode(rt, e.starter, e.tests, e.files);
+      const r1 = await runCode(rt, e.solution, e.tests, e.files);
+      const f0 = r0.fails.length + (r0.error ? 1 : 0) + mustFails(e.starter);
+      rep(f0 > 0 && !r1.error && r1.fails.length === 0 && mustFails(e.solution) === 0, `${id} (${rt})　起始不通過 ${f0} 項　解答 ${JSON.stringify([r1.error, ...r1.fails])}`);
     } else if (e.kind === 'react' || e.kind === 'vue') {
       const mustFails = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
       await mountLive(mine, e.kind, e.starter);
@@ -70,5 +82,5 @@ for (const c of COURSES) for (const ch of c.chapters) {
 }
 lines.push(bad ? `FAILED ${bad}` : 'ALL OK');
 out.textContent = lines.join('\n');
-document.title = bad ? 'FAIL' : 'PASS';
+document.title = bad ? 'FAIL' : 'PASS'; globalThis.__done = true;
 </script>

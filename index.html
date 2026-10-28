@@ -87,6 +87,7 @@
   .qc { background: var(--card); border: 2px dashed var(--line); border-radius: 14px; padding: 10px 14px; margin: 8px 0; } .qc input { font: inherit; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; }
   pre { background: #1e1e1e; color: #ddd; padding: 8px 10px; border-radius: 10px; overflow: auto; font-size: 13px; } .bubble code, .qc code, .side code { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 13px; }
   .exbox { display: grid; grid-template-rows: 1fr auto auto; gap: 8px; height: 100%; } .exbox:has(> .cmp) { grid-template-rows: 34% auto 1fr auto; } .exbox .exed { min-height: 0; } .exbox .cmp { min-height: 0; } .exres { max-height: 22vh; overflow: auto; font-size: 13px; }
+  .exbox:has(> .exout:not([hidden])) { grid-template-rows: 1fr auto auto auto; } .exout { margin: 0; max-height: 14vh; overflow: auto; background: #2b2b3a; color: #e8e8f0; padding: 8px 10px; border-radius: 8px; font-size: 12px; white-space: pre-wrap; }
   .exbar { display: flex; flex-wrap: wrap; gap: 8px; } .exbar .big { font-size: 16px; padding: 8px 22px; font-weight: 700; }
   .tabs button { margin: 0 2px 0 0; padding: 2px 10px; font-size: 13px; } .tabs button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
   .cmp > figure > [hidden] { display: none; }

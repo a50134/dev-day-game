@@ -41,11 +41,9 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
       const acts = [];
       const add = (fn) => acts.push(fn) - 1;
       const html = COURSES.map((c) => {
-        let prev = true; // 同一門課裡，上一堂完成才解鎖下一堂（每門課各自計算）
         return `<div class="card"><h2>${c.icon} ${c.name}</h2>` + c.chapters.map((ch) => {
         const lessons = ch.lessons.map((l) => {
-          const ok = done(l.id), open = prev;
-          prev = ok;
+          const ok = done(l.id), open = true; // 每堂課都能自由進去上，不必照順序
           return `<div class="row ${open ? '' : 'lock'}">${ok ? '✅' : open ? '▶' : '🔒'} ${l.title} ${open ? btn(ok ? '複習' : '上課', add(() => { S.cur = { lesson: l.id, step: 0 }; go('lesson'); })) : ''}</div>`;
         }).join('');
         const lessonsDone = ch.lessons.every((l) => done(l.id)), quizOk = done(ch.id + '-quiz');

@@ -84,8 +84,8 @@ let cmPromise;
 const loadCM = () => (cmPromise ||= Promise.all([
   esm('codemirror@6.0.1'), esm('@codemirror/lang-javascript@6.2.3'), esm('@codemirror/lang-css@6.3.1'),
   esm('@codemirror/autocomplete@6.18.6'), esm('@codemirror/commands@6.8.1'), esm('@codemirror/theme-one-dark@6.1.2'),
-  esm('@codemirror/view'), esm('@codemirror/lang-html@6.4.9'),
-]).then(([c, js, css, autocomplete, commands, dark, view, html]) => ({ c, js, css, autocomplete, commands, dark, view, html })));
+  esm('@codemirror/view'), esm('@codemirror/lang-html@6.4.9'), esm('@codemirror/lang-python@6.1.6').catch(() => null),
+]).then(([c, js, css, autocomplete, commands, dark, view, html, py]) => ({ c, js, css, autocomplete, commands, dark, view, html, py })));
 
 export async function createEditor(parent, { lang, onInput }) {
   const el = document.createElement('div');
@@ -105,6 +105,7 @@ export async function createEditor(parent, { lang, onInput }) {
   const langExt = lang === 'css'
     ? [cm.css.css(), cm.css.cssLanguage.data.of({ autocomplete: cssSource })]
     : lang === 'ts' ? [cm.js.javascript({ typescript: true }), cm.js.javascriptLanguage.data.of({ autocomplete: tsSource })]
+    : lang === 'py' ? (cm.py ? [cm.py.python()] : [])
     : lang === 'html' ? [cm.html.html(), cm.html.htmlLanguage.data.of({ autocomplete: htmlSource })]
     : [cm.js.javascript({ jsx: true }), cm.js.javascriptLanguage.data.of({ autocomplete: jsSource })];
   const view = new cm.c.EditorView({

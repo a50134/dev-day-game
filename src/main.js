@@ -37,7 +37,7 @@ function screen(html, actions = []) {
   acts = actions;
   const bar = Object.entries(S.stats)
     .map(([k, v]) => `<span class="stat"><b>${LABEL[k]}</b> <i style="--w:${v}%"></i> ${v}</span>`).join('');
-  app.innerHTML = `<header>${avatar('me', S.stats.stress > 70 ? 'worried' : 'happy', 36)}${bar}${S.phase === 'office' || S.phase === 'company' ? '' : '<button id="homebtn" class="hm">🏠 回辦公室</button>'}<button id="classbtn" class="rs">🏫 教室（四門課）</button><button id="tsbtn" class="rs2">🧩 TS 練習場</button><button id="restart" class="rs2">🔄 重新開始</button></header><section>${STAGE_PHASES[S.phase] ? '<div id="st3d" class="map map3d mini"></div>' : ''}${html}</section>`;
+  app.innerHTML = `<header>${avatar('me', S.stats.stress > 70 ? 'worried' : 'happy', 36)}${bar}${S.phase === 'office' || S.phase === 'company' ? '' : '<button id="homebtn" class="hm">🏠 回辦公室</button>'}<button id="classbtn" class="rs">🏫 教室（六門課）</button><button id="tsbtn" class="rs2">🧩 TS 練習場</button><button id="restart" class="rs2">🔄 重新開始</button></header><section>${STAGE_PHASES[S.phase] ? '<div id="st3d" class="map map3d mini"></div>' : ''}${html}</section>`;
 }
 const btn = (label, i, cls = '') => `<button class="${cls}" data-a="${i}">${label}</button>`;
 document.addEventListener('click', (e) => {
