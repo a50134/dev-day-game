@@ -60,7 +60,7 @@ for (const c of COURSES) for (const ch of c.chapters) {
       const r1 = await runCode(rt, e.solution, e.tests, e.files);
       const f0 = r0.fails.length + (r0.error ? 1 : 0) + mustFails(e.starter);
       rep(f0 > 0 && !r1.error && r1.fails.length === 0 && mustFails(e.solution) === 0, `${id} (${rt})　起始不通過 ${f0} 項　解答 ${JSON.stringify([r1.error, ...r1.fails])}`);
-    } else if (e.kind === 'react' || e.kind === 'vue') {
+    } else if (e.kind === 'react' || e.kind === 'vue' || e.kind === 'web') {
       const mustFails = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
       await mountLive(mine, e.kind, e.starter);
       const f0 = (await runLive(mine, e)).length + mustFails(e.starter);

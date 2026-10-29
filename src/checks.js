@@ -23,7 +23,9 @@ export function makeCtx(iframe, tokens) {
     await wait(60);
   };
   const click = async (el) => { el.click(); await wait(60); };
-  return { win, doc, t, ta, rgb, bg, type, click, tokens, wait };
+  // 等到 fn() 為真（最多 ms 毫秒）；串接真的 API 要等網路，所以檢查前先等
+  const waitFor = async (fn, ms = 7000) => { for (let t0 = Date.now(); Date.now() - t0 < ms; await wait(150)) { try { if (fn()) return true; } catch (e) { /* 元素還沒出現 */ } } return false; };
+  return { win, doc, t, ta, rgb, bg, type, click, tokens, wait, waitFor };
 }
 
 const num = (el) => Number((el?.textContent.match(/\d+/) || [NaN])[0]);

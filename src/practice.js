@@ -35,9 +35,14 @@ export function compareTw(mine, target, checks) {
 // React / Vue：把玩家的程式放進預覽頁，再用「真的操作畫面」的測試檢查（點按鈕、輸入文字）
 const VUECDN = 'https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.38/vue.global.js';
 const vueDoc = (code) => `<!doctype html><meta charset="utf-8"><script src="${VUECDN}"></script><script>window.__error = null; addEventListener('error', (e) => { window.__error = e.message; });</script><body style="margin:0;padding:12px;font-family:sans-serif">${code}</body>`;
+// 串接 API 的練習（kind 'web'）：一般網頁。fetch 包一層，檢查時可以讓它故意失敗（__failFetch = true 斷網、'http' 回 500），測試錯誤處理
+const WEBPRE = `<script>window.__error = null; addEventListener('error', (e) => { window.__error = e.message; });
+const __f = window.fetch.bind(window);
+window.fetch = (...a) => window.__failFetch === 'http' ? Promise.resolve(new Response('{"current":{"temperature_2m":-999}}', { status: 500 })) : window.__failFetch ? Promise.reject(new TypeError('Failed to fetch')) : __f(...a);</script>`;
+const webDoc = (code) => `<!doctype html><meta charset="utf-8">${WEBPRE}<body style="margin:0;padding:12px;font-family:sans-serif">${code}</body>`;
 export const mountLive = (frame, kind, code) => new Promise((res) => {
-  frame.onload = () => setTimeout(res, 900);
-  frame.srcdoc = kind === 'react' ? buildSrcdoc({ code, css: '', tech: { ts: false, tailwind: false } }) : vueDoc(code);
+  frame.onload = () => setTimeout(res, kind === 'web' ? 300 : 900);
+  frame.srcdoc = kind === 'react' ? buildSrcdoc({ code, css: '', tech: { ts: false, tailwind: false } }) : kind === 'web' ? webDoc(code) : vueDoc(code);
 });
 export async function runLive(frame, ex) {
   const w = frame.contentWindow;
@@ -107,7 +112,7 @@ export function exercise(box, ex, { key, onPass }) {
     return;
   }
 
-  if (ex.kind === 'react' || ex.kind === 'vue') {
+  if (ex.kind === 'react' || ex.kind === 'vue' || ex.kind === 'web') {
     box.innerHTML = `<div class="exed"></div>${BAR(true)}
       <div class="cmp"><figure><figcaption>🎯 目標（參考解答的畫面）</figcaption><iframe class="tgt"></iframe></figure>
       <figure><figcaption>🛠 你的成果</figcaption><iframe class="mine"></iframe></figure></div>
@@ -124,7 +129,7 @@ export function exercise(box, ex, { key, onPass }) {
       if (!fails.length) pass();
     };
     (async () => {
-      ed = await createEditor(box.querySelector('.exed'), { lang: ex.kind === 'react' ? 'jsx' : 'html', onInput: () => { clearTimeout(timer); timer = setTimeout(() => { store.set(key, ed.value); mountLive(mine, ex.kind, ed.value); }, 900); } });
+      ed = await createEditor(box.querySelector('.exed'), { lang: ex.kind === 'react' ? 'jsx' : 'html', onInput: () => { clearTimeout(timer); timer = setTimeout(() => { store.set(key, ed.value); mountLive(mine, ex.kind, ed.value); }, ex.kind === 'web' ? 1800 : 900); } });
       ed.value = saved ?? ex.starter;
       wireBar(box, { getEd: () => ed, starter: ex.starter, solution: ex.solution, onCheck });
       mountLive(mine, ex.kind, ed.value);

@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke10</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 10：「串接 API 實戰」課程——起始程式不通過、參考解答通過（真的連網，和真正的 API 比對）
+import { COURSES } from './src/courses.js';
+import { mountLive, runLive } from './src/practice.js';
+const lines = []; let bad = 0;
+const rep = (ok, m) => { if (!ok) bad++; lines.push((ok ? 'OK   ' : 'FAIL ') + m); out.textContent = lines.join('\n'); };
+addEventListener('unhandledrejection', (e) => { bad++; lines.push('ERROR ' + (e.reason?.stack || e.reason)); out.textContent = lines.join('\n'); });
+const only = new URLSearchParams(location.search).get('only');
+const mine = document.createElement('iframe'); mine.style.cssText = 'width:700px;height:420px'; document.body.append(mine);
+const course = COURSES.find((c) => c.id === 'api');
+rep(!!course, '課程清單有「串接 API 實戰」');
+for (const ch of course.chapters) {
+  const ex = [...ch.lessons.map((l) => [l.id, l.final]), ...ch.projects.map((p, i) => [`${ch.id}-p${i}`, p])];
+  for (const [id, e] of ex) {
+    if (only && !id.includes(only)) continue;
+    const must = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
+    await mountLive(mine, e.kind, e.starter);
+    const f0 = (await runLive(mine, e)).length + must(e.starter);
+    await mountLive(mine, e.kind, e.solution);
+    const f1 = [...(await runLive(mine, e)), ...Array(must(e.solution)).fill('must')];
+    rep(f0 > 0 && f1.length === 0, `${id}　起始不通過 ${f0} 項　解答 ${JSON.stringify(f1)}`);
+  }
+}
+out.textContent = lines.join('\n') + '\n' + (bad ? 'FAILED ' + bad : 'ALL OK');
+</script>
