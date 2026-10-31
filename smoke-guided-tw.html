@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke-guided-tw</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 手把手專案（Tailwind 活動卡片）：每個單元的起始內容不通過、解答通過
+import { GUIDED } from './src/guided-tw.js';
+import { mountTw, compareTw } from './src/practice.js';
+const lines = []; let bad = 0;
+const rep = (ok, m) => { if (!ok) bad++; lines.push((ok ? 'OK   ' : 'FAIL ') + m); out.textContent = lines.join('\n'); };
+addEventListener('unhandledrejection', (e) => { bad++; lines.push('ERROR ' + (e.reason?.stack || e.reason)); out.textContent = lines.join('\n'); });
+const mk = (w) => { const f = document.createElement('iframe'); f.style.cssText = `width:${w}px;height:420px`; document.body.append(f); return f; };
+const tgt = mk(420), mine = mk(420), wide = mk(1000);
+const ch = GUIDED.chapter;
+rep(ch.lessons.length === 8 && ch.quiz.length === 4 && !!GUIDED.event.options, '章節 8 單元、測驗 4 題、事件');
+for (const l of ch.lessons) {
+  const e = l.final;
+  rep(l.steps.length === 3 && l.steps.every((s) => s.check && s.check.answer < s.check.options.length && s.check.why), `${l.id} 3 步、每步有選擇題與 why`);
+  const sol = e.build(e.solution), start = e.build({});
+  const must = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
+  await mountTw(tgt, sol);
+  await mountTw(mine, start);
+  const f0 = compareTw(mine, tgt, e.checks).length + must(start);
+  await mountTw(mine, sol);
+  const f1 = [...compareTw(mine, tgt, e.checks), ...Array(must(sol)).fill('must')];
+  rep(f0 > 0 && f1.length === 0, `${l.id}　起始不通過 ${f0} 項　解答 ${JSON.stringify(f1)}`);
+  if (l.id === 'tg3') rep(tgt.contentDocument.querySelector('#card').ownerDocument.defaultView.getComputedStyle(tgt.contentDocument.querySelector('#card')).boxShadow !== 'none', 'tg3 陰影真的有套用');
+  if (l.id === 'tg7') rep(tgt.contentWindow.getComputedStyle(tgt.contentDocument.querySelector('#list')).display === 'grid', 'tg7 #list 是 grid');
+  if (l.id === 'tg8') {
+    const cols = (f) => f.contentWindow.getComputedStyle(f.contentDocument.querySelector('#list')).gridTemplateColumns.split(' ').length;
+    await mountTw(wide, sol);
+    rep(cols(tgt) === 1 && cols(wide) === 3, `tg8 窄螢幕 ${cols(tgt)} 欄、寬螢幕 ${cols(wide)} 欄`);
+  }
+}
+out.textContent = lines.join('\n') + '\n' + (bad ? 'FAILED ' + bad : 'ALL OK');
+</script>

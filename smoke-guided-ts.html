@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke-guided-ts</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 手把手專案（TypeScript：票券資料小工具）——每一步：起始檔不通過、解答通過；並檢查講解步驟都有選擇題
+import { GUIDED } from './src/guided-ts.js';
+import { loadTS, judge } from './src/ts.js';
+const lines = []; let bad = 0;
+const rep = (ok, m) => { if (!ok) bad++; lines.push((ok ? 'OK   ' : 'FAIL ') + m); out.textContent = lines.join('\n'); };
+addEventListener('unhandledrejection', (e) => { bad++; lines.push('ERROR ' + (e.reason?.stack || e.reason)); out.textContent = lines.join('\n'); });
+const ts = await loadTS();
+const ch = GUIDED.chapter;
+rep(ch.lessons.length >= 6 && ch.lessons.length <= 8 && ch.quiz.length === 4 && !!GUIDED.event.options.length, `章節 ${ch.id}：${ch.lessons.length} 單元，測驗 ${ch.quiz.length} 題`);
+for (const l of ch.lessons) {
+  const e = l.final;
+  const stepsOk = !!(l.steps.length === 3 && l.steps.every((s) => s.check?.type === 'choice' && s.check.options[s.check.answer] && s.check.why) && e.steps.length >= 3 && e.brief && e.hint);
+  const f0 = judge(ts, e, e.starter);
+  const f1 = judge(ts, e, e.solution);
+  rep(f0.length > 0 && f1.length === 0 && stepsOk, `${l.id}　起始不通過 ${f0.length} 項　解答 ${JSON.stringify(f1)}　講解完整 ${stepsOk}`);
+}
+out.textContent = lines.join('\n') + '\n' + (bad ? 'FAILED ' + bad : 'ALL OK');
+</script>

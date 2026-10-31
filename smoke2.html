@@ -36,6 +36,14 @@ const walk = async (tx, ty) => { // 先橫向再縱向（地圖中間走道是 y
   }
 };
 
+// ---- 資料檢查：單元 id 不重複、每章都有事件、手把手章節都在 ----
+{
+  const { COURSES: CS, COURSE_EVENTS: EV } = await import('./src/courses.js');
+  const ids = CS.flatMap((c) => c.chapters.flatMap((ch) => ch.lessons.map((l) => l.id)));
+  ok(new Set(ids).size === ids.length, '資料 所有單元 id 不重複（共 ' + ids.length + ' 個）');
+  ok(CS.every((c) => c.chapters.every((ch) => EV[ch.event])), '資料 每一章都有對應的辦公室小事件');
+  ok(CS.every((c) => c.chapters[c.chapters.length - 1].title.includes('手把手')), '資料 七門課最後一章都是手把手專案');
+}
 // ---- A. 章節測驗 → 小事件 ----
 const ch = COURSES[0].chapters[0];
 await open({ phase: 'classroom', back: 'office', prog: { ts1: true, ts2: true, ts3: true }, room: 'ts', pos: { x: 5, y: 5 }, goal: 'req' });
@@ -86,7 +94,7 @@ ok(q('h1')?.textContent.includes('教室'), 'C 公司選擇畫面也能從標頭
 ok(qa('button').filter((b) => b.textContent === '進入').length === 7 && !qa('button').some((b) => b.textContent === '上課'), 'C 先選課：七門課各一張卡片（TypeScript、Tailwind、React、Vue、Node.js、Python、串接 API），還看不到單元');
 ok(['Node.js 後端', 'Python', '串接 API'].every((n) => qa('h2').some((h) => h.textContent.includes(n))), 'C 教室裡有 Node.js 後端、Python、串接 API 三門新課');
 await click(qa('.card').find((c) => c.textContent.includes('串接 API')).querySelector('button'));
-ok(qa('button').filter((b) => b.textContent === '上課' || b.textContent === '複習').length === 16, 'C 進入「串接 API」後看到 16 個單元，可以直接上');
+ok(qa('button').filter((b) => b.textContent === '上課' || b.textContent === '複習').length === 18, 'C 進入「串接 API」後看到 18 個單元，可以直接上');
 await click(btnText('選別門課'));
 const twBtn = qa('.card').find((c) => c.textContent.includes('Tailwind')).querySelector('button');
 await click(twBtn);

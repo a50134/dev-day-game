@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke-guided-nd</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試：Node.js「手把手專案」——每個單元起始程式不通過、參考解答通過
+import { GUIDED } from './src/guided-nd.js';
+import { runCode } from './src/runner.js';
+globalThis.__noTimeout = true;
+const lines = []; let bad = 0;
+const rep = (ok, m) => { if (!ok) bad++; lines.push((ok ? 'OK   ' : 'FAIL ') + m); out.textContent = lines.join('\n'); };
+addEventListener('unhandledrejection', (e) => { bad++; lines.push('ERROR ' + (e.reason?.stack || e.reason)); out.textContent = lines.join('\n'); });
+const only = new URLSearchParams(location.search).get('only');
+const ch = GUIDED.chapter;
+rep(ch.lessons.length >= 6 && ch.lessons.length <= 8, `單元數 ${ch.lessons.length}`);
+rep(ch.lessons.every((l) => l.steps.length === 3 && l.steps.every((s) => s.check && s.check.type === 'choice')), '每個單元 3 個講解步驟，各有選擇題');
+for (const l of ch.lessons) {
+  if (only && !l.id.includes(only)) continue;
+  const e = l.final;
+  const must = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
+  const r0 = await runCode('js', e.starter, e.tests, e.files);
+  const f0 = r0.fails.length + must(e.starter) + (r0.error ? 1 : 0);
+  const r1 = await runCode('js', e.solution, e.tests, e.files);
+  const f1 = [...r1.fails, ...Array(must(e.solution)).fill('must'), ...(r1.error ? [r1.error] : [])];
+  rep(f0 > 0 && f1.length === 0, `${l.id}　起始不通過 ${f0} 項　解答 ${JSON.stringify(f1)}`);
+}
+out.textContent = lines.join('\n') + '\n' + (bad ? 'FAILED ' + bad : 'ALL OK');
+</script>

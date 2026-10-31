@@ -10,6 +10,98 @@ const WEATHER = 'https://api.open-meteo.com/v1/forecast?current=temperature_2m&l
 const get = async (url) => (await fetch(url)).json();
 const NONET = '（測試時連不上網路，沒辦法和真正的 API 比對，請檢查網路後再按一次）';
 
+/* ============================ 第 0 堂（講義 Day 25）============================ */
+const PRODUCT = 'https://fakestoreapi.com/products/1';
+const A0 = {
+  id: 'api0', title: '第 0 堂　把 .then() 改寫成 async / await（講義 Day 25）',
+  steps: [
+    { say: `<p>你的講義 Day 25 在教：<b>async / await</b> 是讓「非同步」程式<b>寫起來像一般程式、一行一行往下讀</b>的寫法。先看同一件事的兩種寫法：</p>${pre("// 舊寫法：.then() 一層包一層\nfetch(url)\n  .then(response => response.json())\n  .then(data => {\n    console.log(data.title);\n  });\n\n// 新寫法：async / await，像一般程式一樣由上往下\nasync function load() {\n  const response = await fetch(url);\n  const data = await response.json();\n  console.log(data.title);\n}")}<p>兩個做的事<b>完全一樣</b>，只是新寫法好讀很多、也比較好除錯。接下來整門 API 課都用新寫法。</p>`,
+      check: choice('<code>.then()</code> 寫法和 <code>async / await</code> 寫法，做的事？', ['一樣，只是 async / await 比較好讀', '完全不同', 'await 比較慢'], 0, 'async / await 是讓非同步程式更好讀的語法糖。') },
+    { say: `<p>講義的三個語法重點，逐條講清楚：</p>
+      <ul><li><code>async</code>：放在函式前面，代表這是「非同步函式」，它<b>一定會回傳一個 Promise</b>（可以先把 Promise 想成「承諾：資料之後會到」）。</li>
+      <li><code>await</code>：<b>只能放在 async 函式裡面</b>。程式會在那一行「暫停」，等 Promise 做完、拿到結果，才往下一行走。</li>
+      <li><b>直接賦值：</b>用 <code>.then()</code> 時，資料只能在回呼函式裡面拿；用 <code>await</code> 可以直接寫 <code>const data = await ...</code>，後面像一般變數使用。</li></ul>
+      <p>為什麼 <code>await</code> 要放在 async 函式裡？因為「暫停等待」只有在非同步函式裡才安全，不然整個網頁會被卡住。</p>`,
+      check: choice('<code>await</code> 可以寫在哪裡？', ['async 函式裡面', '任何地方都可以', '只能寫在 .then() 裡'], 0, 'await 只能用在 async 函式內（或模組最上層）。') },
+    { say: `<p>改寫的三個動作，照著對應就好：</p>
+      ${pre("// ① 函式前面加 async\nasync function handleProductRequest() {\n\n  // ② 每個 .then(...) 變成一行 await 賦值\n  //   fetch(url).then(response => ...)    →  const response = await fetch(url);\n  //   response.json().then(data => ...)   →  const product = await response.json();\n  const response = await fetch('https://fakestoreapi.com/products/1');\n  const product = await response.json();\n\n  // ③ 原本 .then 回呼裡的內容，搬到後面照常使用\n  console.log('產品名稱：', product.title);\n}\n\nhandleProductRequest();   // 最後別忘了呼叫它，函式不會自己跑")}`,
+      check: choice('改寫完最後一行 <code>handleProductRequest();</code> 的用途是？', ['呼叫函式，程式才會真的開始執行', '宣告函式', '結束程式'], 0, '只宣告函式不會執行，要呼叫才會跑。') },
+    { say: `<p><b>延伸小陷阱（這就是 try / catch 的用途）：</b>這個練習用的 <code>fakestoreapi.com</code> 有個特別的地方——查一個不存在的商品（例如 <code>/products/9999</code>），它<b>仍然回 200（成功）</b>，但內容是空的。這時 <code>await response.json()</code> 會<b>丟出錯誤</b>，整個函式就停了。</p><p>所以真正的專案裡，<code>await</code> 的程式常會用 <code>try / catch</code> 包起來。第 2 堂會一步一步教你。現在先把「改寫」學會。</p>`,
+      check: choice('<code>await response.json()</code> 如果對方給的內容不是 JSON，會？', ['丟出錯誤，需要 try / catch 接住', '回傳空物件', '什麼事都沒有'], 0, 'json() 解析失敗會丟錯誤。') },
+  ],
+  final: web({
+    brief: '依講義 Day 25 的題目：把 <code>getProductData()</code>（.then 寫法）<b>改寫成 async / await</b>，函式取名 <code>handleProductRequest</code>。① 用 <code>await</code> 接 fetch 的回應 ② 用 <code>await</code> 接 <code>.json()</code> 的結果，指定給變數 <code>product</code> ③ 用 <code>console.log</code> 印出 <code>product.title</code>，同時把商品名稱和價格顯示在畫面上（<code>title</code>、<code>price</code>）。最後呼叫它。',
+    hint: '照 demo 的三個動作：加 async、.then 變 await、記得呼叫函式。程式裡不可以再出現 <code>.then(</code>。',
+    demo: `<p>範例（換成查另一個 API 的使用者）：</p>${pre("// 舊寫法\nfunction getUser() {\n  fetch('https://jsonplaceholder.typicode.com/users/1')\n    .then(response => response.json())\n    .then(data => { console.log('使用者：', data.name); });\n}\n\n// 改寫後\nasync function handleUserRequest() {\n  const response = await fetch('https://jsonplaceholder.typicode.com/users/1');  // 第一個 .then → 第一個 await\n  const user = await response.json();                                          // 第二個 .then → 第二個 await，結果指定給 user\n  console.log('使用者：', user.name);                                           // 原本回呼裡的內容搬到後面\n}\nhandleUserRequest();")}`,
+    steps: [
+      `把函式名稱改成 <code>handleProductRequest</code>，前面加 <code>async</code>：<pre>async function handleProductRequest() {\n  ...\n}</pre>為什麼：只有 async 函式裡才能用 await。`,
+      `第一個 await：<pre>const response = await fetch('${PRODUCT}');</pre>為什麼：取代第一個 <code>.then</code>，等 fetch 回來再往下。`,
+      `第二個 await，結果指定給 <code>product</code>：<pre>const product = await response.json();</pre>為什麼：取代第二個 <code>.then</code>，題目指定變數名稱是 product。`,
+      `印出並顯示：<pre>console.log('產品名稱：', product.title);\ntitleEl.textContent = product.title;\npriceEl.textContent = '$' + product.price;</pre>為什麼：console.log 是講義的要求，顯示在畫面上我才能檢查你的結果。`,
+      `最後呼叫：<pre>handleProductRequest();</pre>為什麼：宣告不等於執行。最常犯的錯：忘了呼叫、或把 <code>.then(</code> 殘留在程式裡。`,
+    ],
+    starter: `<h3 data-testid="title">載入中…</h3>
+<p data-testid="price"></p>
+<script>
+const titleEl = document.querySelector('[data-testid="title"]');
+const priceEl = document.querySelector('[data-testid="price"]');
+
+// 傳統 .then() 寫法（目前可以跑，但你要把它改寫掉）
+function getProductData() {
+  fetch('${PRODUCT}')
+    .then(response => response.json())
+    .then(data => {
+      console.log('產品名稱：', data.title);
+      titleEl.textContent = data.title;
+      priceEl.textContent = '$' + data.price;
+    });
+}
+getProductData();
+
+// TODO: 刪掉上面的 getProductData，改寫成 async function handleProductRequest()
+//   ① const response = await fetch(...)
+//   ② const product = await response.json()
+//   ③ console.log('產品名稱：', product.title)，並把 title、price 放進畫面
+//   最後呼叫 handleProductRequest();
+</script>
+`,
+    solution: `<h3 data-testid="title">載入中…</h3>
+<p data-testid="price"></p>
+<script>
+const titleEl = document.querySelector('[data-testid="title"]');
+const priceEl = document.querySelector('[data-testid="price"]');
+
+async function handleProductRequest() {
+  const response = await fetch('${PRODUCT}');
+  const product = await response.json();
+  console.log('產品名稱：', product.title);
+  titleEl.textContent = product.title;
+  priceEl.textContent = '$' + product.price;
+}
+
+handleProductRequest();
+</script>
+`,
+    must: [
+      { re: /async\s+function\s+handleProductRequest/, msg: '請把函式改寫成 async function handleProductRequest()' },
+      { re: /await\s+fetch\(/, msg: '請用 await 接 fetch 的回應' },
+      { re: /const\s+product\s*=\s*await\s+response\.json\(\)/, msg: '請用 await 接 .json() 的結果並指定給變數 product（const product = await response.json()）' },
+      { re: /console\.log\(/, msg: '請用 console.log 印出 product.title' },
+      { re: /^(?![\s\S]*\.then\s*\()[\s\S]*$/, msg: '改寫後不可以再使用 .then(...)' },
+    ],
+    test: async (c) => {
+      const f = [], tEl = c.t('title'), pEl = c.t('price');
+      if (!tEl || !pEl) return ['缺少 title / price 元素（不要刪掉 data-testid）'];
+      if (typeof c.win.handleProductRequest !== 'function') f.push('找不到 handleProductRequest 函式');
+      else if (c.win.handleProductRequest.constructor.name !== 'AsyncFunction') f.push('handleProductRequest 要是 async 函式（前面加 async）');
+      let real; try { real = await get(PRODUCT); } catch (e) { return [...f, NONET]; }
+      if (!(await c.waitFor(() => txt(tEl) === real.title))) f.push(`title 應該顯示商品名稱「${real.title}」，目前是「${txt(tEl)}」`);
+      if (!txt(pEl).includes(String(real.price))) f.push(`price 應該包含價格 ${real.price}，目前是「${txt(pEl)}」`);
+      return f;
+    },
+  }),
+};
+
 /* ============================ 第 1 堂 ============================ */
 const A1 = {
   id: 'api1', title: '第 1 堂　API 是什麼？第一次 fetch',
@@ -228,6 +320,108 @@ reload.onclick = load;
       c.win.__failFetch = false;
       await c.click(btn);
       if (!(await c.waitFor(() => /完成/.test(st()) && /\d/.test(tp())))) f.push('網路恢復後按「重新整理」，應該又能顯示氣溫');
+      return f;
+    },
+  }),
+};
+
+/* ============================ 第 2 堂之二（講義 Day 26）============================ */
+const WRONG = 'https://fakestoreapi.com/wrong-path';
+const A2B = {
+  id: 'api2b', title: '第 2 堂之二　try…catch 錯誤處理實作（講義 Day 26）',
+  steps: [
+    { say: `<p>講義 Day 26：用了 async / await，理想狀況是資料順利回來；但真實世界<b>網路常出意外</b>。解法是把非同步的程式包進 <code>try</code>，一出錯就<b>立刻跳到 <code>catch</code></b>：</p>${pre("async function getData() {\n  try {\n    const response = await fetch('https://invalid-url.com');   // 錯誤的網址\n    const data = await response.json();\n  } catch (error) {\n    console.log('發現錯誤！詳細內容：', error.message);\n  }\n  console.log('程式繼續執行中...');   // ← 有 catch，這行仍然會跑\n}")}<ul><li><b>try 區塊：</b>預期正常執行的程式（例如 fetch）。</li><li><b>catch 區塊：</b>try 裡出錯就跳到這裡，<code>error</code> 帶著錯誤資訊。</li><li><b>防止中斷：</b>就算 API 報錯，後面的程式還能繼續。沒有 try / catch，錯誤一發生整個函式就停了，後面的程式再也不會跑。</li></ul>`,
+      check: choice('<code>try</code> 裡面出錯之後，<code>catch</code> 後面的程式（像上面的「程式繼續執行中…」）？', ['還是會繼續執行', '不會執行，整個程式中斷', '會再執行一次 try'], 0, '這就是 try…catch 的好處：錯誤被接住，程式不會中斷。') },
+    { say: `<p>講義的重點提醒：<b>try…catch 並不能涵蓋所有異常。</b></p><p><code>fetch</code> 只有在<b>網路層</b>出問題（沒網路、網域錯誤）時才會丟錯誤、進 catch。只要網路本身沒問題，就算對方回 <b>404、500</b>，fetch 也<b>不會</b>丟錯誤——因為「對方有回應」只是回應的內容是錯誤。</p><p>所以要自己用 <code>response.ok</code> 判斷：<b>200～299 才是 true</b>，其他都是 false。</p>`,
+      check: choice('網址寫錯（例如 <code>/wrong-path</code>），伺服器回 404，<code>await fetch(url)</code> 會？', ['不會丟錯誤，要自己檢查 response.ok', '一定丟錯誤進 catch', '回傳空資料'], 0, 'fetch 只有網路層出問題才會丟錯誤。') },
+    { say: `<p>解法：先檢查 <code>response.ok</code>，不對就用 <code>throw new Error(...)</code> <b>手動丟出錯誤，強迫進入 catch</b>：</p>${pre("try {\n  const response = await fetch(url);\n\n  // fetch 不會判斷 4xx/5xx 錯誤，因此自己加上判斷\n  if (!response.ok) {\n    // 這裡手動把 4xx/5xx 變成一個錯誤，強迫進入 catch\n    throw new Error(`連線失敗：${response.status}`);\n  }\n\n  const data = await response.json();\n  console.log('成功取得資料：', data);\n\n} catch (error) {\n  // 這裡會同時處理「網路層」以及「我們手動丟出的 4xx/5xx 錯誤」\n  console.log('錯誤：', error.message);\n}")}<p>這樣 <code>catch</code> 一個地方就能處理<b>兩種</b>錯誤。</p>`,
+      check: choice('<code>throw new Error(...)</code> 的作用是？', ['手動丟出錯誤，讓程式跳進 catch', '印出錯誤訊息', '重新送出請求'], 0, 'throw 會中斷 try 並跳到 catch。') },
+    { say: `<p>這題的重點：<b>題目要你在 catch 裡印出一句固定的話</b>（給使用者看的友善訊息），而不是把技術細節的 <code>error.message</code> 直接丟給使用者。</p><p>兩者用途不同：</p><ul><li><code>error.message</code>：給<b>工程師</b>除錯用（例如「連線失敗：404」）。</li><li>固定訊息「API 請求失敗，請檢查網址或網路狀態」：給<b>使用者</b>看，看得懂、知道下一步怎麼做。</li></ul><p>實務上常常兩個都做：訊息給使用者，<code>console.log(error.message)</code> 留給自己除錯。</p>`,
+      check: choice('要給一般使用者看的錯誤訊息，比較適合？', ['看得懂、告訴他可以怎麼做的一句話', '直接顯示 error.message 的英文技術細節', '什麼都不顯示'], 0, '對使用者要友善，對工程師才需要技術細節。') },
+  ],
+  final: web({
+    brief: '依講義 Day 26：用 <code>async / await</code> 寫 <code>getProduct()</code>，去要錯誤網址 <code>wrong-path</code>。用 <code>try…catch</code> 接住；加上 <code>!response.ok</code> 判斷並<b>手動 throw</b>；<code>catch</code> 裡用 <code>console.log</code> 印出「API 請求失敗，請檢查網址或網路狀態」，同時也把這句話顯示在畫面 <code>message</code>。try…catch 結束後，把 <code>done</code> 顯示「程式繼續執行中...」。最後呼叫 <code>getProduct()</code>。',
+    hint: '照順序：try { fetch → 檢查 response.ok（不 ok 就 throw）→ json } catch { 印出訊息 }，catch 後面再放「程式繼續執行中...」。',
+    demo: `<p>範例（換成錯誤的使用者網址）：</p>${pre("async function getUser() {\n  const url = 'https://jsonplaceholder.typicode.com/not-exist';   // 404 的網址\n  try {\n    const response = await fetch(url);\n    if (!response.ok) {                                  // 404 不會自己丟錯，所以自己檢查\n      throw new Error(`連線失敗：${response.status}`);    // 手動丟出，強迫進 catch\n    }\n    const user = await response.json();\n    console.log(user);\n  } catch (error) {\n    console.log('使用者資料讀取失敗，請稍後再試');          // 給使用者看的固定訊息\n  }\n  console.log('程式繼續執行中...');                         // catch 之後仍會執行\n}\ngetUser();")}`,
+    steps: [
+      `先寫 try 和 catch 的骨架：<pre>try {\n  ...\n} catch (error) {\n  ...\n}</pre>為什麼：先有骨架，才知道每一段程式該放哪裡。`,
+      `try 裡第一行：<pre>const response = await fetch(url);</pre>為什麼：送出請求。這個網址是錯的，會回 404。`,
+      `接著檢查 ok：<pre>if (!response.ok) {\n  throw new Error('HTTP error! status: ' + response.status);\n}</pre>為什麼：404 不會讓 fetch 自己丟錯，所以要自己 throw，才會跳到 catch。`,
+      `然後解析（成功才會跑到這）：<pre>const data = await response.json();\nconsole.log(data);</pre>為什麼：正常情況的流程。這題因為會 throw，這兩行不會執行，但真實專案一定要寫。`,
+      `catch 裡：<pre>console.log('API 請求失敗，請檢查網址或網路狀態');\nmessageEl.textContent = 'API 請求失敗，請檢查網址或網路狀態';</pre>為什麼：console.log 是講義的要求，畫面上顯示才是真的給使用者看。`,
+      `try…catch 後面：<pre>doneEl.textContent = '程式繼續執行中...';</pre>為什麼：證明錯誤被接住了，程式沒有中斷。最常犯的錯：忘了 <code>throw</code>，結果 404 時 catch 根本沒執行。`,
+    ],
+    starter: `<p data-testid="message"></p>
+<p data-testid="done"></p>
+<script>
+const messageEl = document.querySelector('[data-testid="message"]');
+const doneEl = document.querySelector('[data-testid="done"]');
+
+async function getProduct() {
+  const url = '${WRONG}';
+
+  // TODO 1: 用 try { } catch (error) { } 把下面的流程包起來
+  // TODO 2: try 裡：const response = await fetch(url);
+  // TODO 3: 如果 !response.ok，用 throw new Error(...) 手動丟出錯誤
+  // TODO 4: 接著 const data = await response.json(); console.log(data);
+  // TODO 5: catch 裡：console.log 和 messageEl 都顯示「API 請求失敗，請檢查網址或網路狀態」
+  // TODO 6: try…catch 後面：doneEl.textContent = '程式繼續執行中...';
+}
+
+getProduct();
+</script>
+`,
+    solution: `<p data-testid="message"></p>
+<p data-testid="done"></p>
+<script>
+const messageEl = document.querySelector('[data-testid="message"]');
+const doneEl = document.querySelector('[data-testid="done"]');
+
+async function getProduct() {
+  const url = '${WRONG}';
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(\`HTTP error! status: \${response.status}\`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.log('API 請求失敗，請檢查網址或網路狀態');
+    messageEl.textContent = 'API 請求失敗，請檢查網址或網路狀態';
+  }
+
+  doneEl.textContent = '程式繼續執行中...';
+}
+
+getProduct();
+</script>
+`,
+    must: [
+      { re: /try\s*\{/, msg: '請用 try { } 包住 fetch' },
+      { re: /catch\s*\(/, msg: '請用 catch (error) { } 接住錯誤' },
+      { re: /!\s*response\.ok|response\.ok\s*===?\s*false/, msg: '請加上 !response.ok 的判斷' },
+      { re: /throw\s+new\s+Error/, msg: '請用 throw new Error(...) 手動丟出錯誤' },
+      { re: /console\.log\(\s*['"`]API 請求失敗，請檢查網址或網路狀態['"`]\s*\)/, msg: 'catch 裡請用 console.log 印出「API 請求失敗，請檢查網址或網路狀態」' },
+    ],
+    test: async (c) => {
+      const f = [], MSG = 'API 請求失敗，請檢查網址或網路狀態', mEl = c.t('message'), dEl = c.t('done');
+      if (!mEl || !dEl) return ['缺少 message / done 元素（不要刪掉 data-testid）'];
+      if (typeof c.win.getProduct !== 'function') return ['找不到 getProduct 函式'];
+      if (!(await c.waitFor(() => txt(mEl) !== '' || txt(dEl) !== '', 8000))) return ['等了 8 秒，畫面還是沒有任何訊息。getProduct() 有被呼叫嗎？'];
+      if (txt(mEl) !== MSG) f.push(`網址錯誤（404）時，message 應該顯示「${MSG}」，目前是「${txt(mEl)}」。記得檢查 response.ok 並 throw`);
+      if (!/程式繼續執行中/.test(txt(dEl))) f.push('try…catch 結束後，done 應該顯示「程式繼續執行中...」（錯誤被接住，程式沒有中斷）');
+      mEl.textContent = ''; dEl.textContent = '';
+      c.win.__failFetch = true; await c.win.getProduct();
+      if (txt(mEl) !== MSG) f.push('斷網時也要顯示同一句訊息，目前是「' + txt(mEl) + '」');
+      mEl.textContent = ''; dEl.textContent = '';
+      c.win.__failFetch = 'http'; await c.win.getProduct();
+      if (txt(mEl) !== MSG) f.push('伺服器回 500 時也要顯示同一句訊息，目前是「' + txt(mEl) + '」');
+      if (!/程式繼續執行中/.test(txt(dEl))) f.push('出錯後 done 仍要顯示「程式繼續執行中...」');
+      c.win.__failFetch = false;
       return f;
     },
   }),
@@ -1656,7 +1850,7 @@ const API_QUIZ4 = [
 /* ============================ 匯出 ============================ */
 export const API_COURSES = [
   { id: 'api', name: '串接 API 實戰', icon: '🔌', teacher: 'Lily 老師', chapters: [
-    { id: 'api-c1', title: '第一章　fetch 基本功與錯誤處理', lessons: [A1, A2], quiz: API_QUIZ1, projects: [API_P1], event: 'api-c1' },
+    { id: 'api-c1', title: '第一章　fetch 基本功與錯誤處理', lessons: [A0, A1, A2, A2B], quiz: API_QUIZ1, projects: [API_P1], event: 'api-c1' },
     { id: 'api-c2', title: '第二章　真實 API：地名、地圖、地震', lessons: [A3, A4, A5], quiz: API_QUIZ2, projects: [API_P2, API_P3], event: 'api-c2' },
     { id: 'api-c3', title: '第三章　快取 cache：該存什麼、存多久、失敗怎麼辦', lessons: [A6, A7, A8], quiz: API_QUIZ3, projects: [], event: 'api-c3' },
     { id: 'api-c4', title: '第四章　手把手專案：城市天氣小站（從空白做到完成）', lessons: W_UNITS, quiz: API_QUIZ4, projects: [], event: 'api-c4' },

@@ -4,6 +4,12 @@ import { CHALLENGES } from './ts.js';
 import { FE_COURSES, FE_EVENTS } from './courses-fe.js';
 import { BE_COURSES, BE_EVENTS } from './courses-be.js';
 import { API_COURSES, API_EVENTS } from './courses-api.js';
+import { GUIDED as G_TS } from './guided-ts.js';
+import { GUIDED as G_TW } from './guided-tw.js';
+import { GUIDED as G_RC } from './guided-rc.js';
+import { GUIDED as G_VU } from './guided-vu.js';
+import { GUIDED as G_ND } from './guided-nd.js';
+import { GUIDED as G_PY } from './guided-py.js';
 
 const ch = (id) => CHALLENGES.find((c) => c.id === id);
 const noAny = { test: (s) => !/:\s*any\b|\bas any\b|<any>|@ts-ignore|@ts-expect-error/.test(s), msg: '不可以用 any 或 @ts-ignore 矇混過去' };
@@ -491,11 +497,16 @@ const BASE_COURSES = [
 ];
 export const COURSES = [...BASE_COURSES, ...FE_COURSES, ...BE_COURSES, ...API_COURSES];
 
+// 每門課最後一章：手把手專案（從空白做到完成）
+const GUIDED_ALL = { ts: G_TS, tw: G_TW, rc: G_RC, vu: G_VU, nd: G_ND, py: G_PY };
+for (const [id, g] of Object.entries(GUIDED_ALL)) COURSES.find((c) => c.id === id).chapters.push(g.chapter);
+
 // 通過章節測驗後，辦公室裡會有人帶著小事件來找你（頭上出現 💬）
 export const COURSE_EVENTS = {
   ...FE_EVENTS,
   ...BE_EVENTS,
   ...API_EVENTS,
+  ...Object.fromEntries(Object.entries(GUIDED_ALL).map(([id, g]) => [id + '-cg', g.event])),
   'ts-c1': { npc: 'mate', mood: 'worried', text: '欸新人！我的 PR 裡到處都是 any，組長說要補型別……你剛學完，可以幫我看看嗎？',
     options: [{ label: '教他用 interface 描述資料，一起改', fx: { team: 8, quality: 6, stress: 4 } }, { label: '直接幫他全改好', fx: { quality: 6, stress: 8, team: 3 } }, { label: '說沒空', fx: { team: -6 } }] },
   'ts-c2': { npc: 'lead', mood: 'happy', text: '聽說你學會聯集型別和泛型了？這個 API 可能回傳成功或失敗，你覺得型別怎麼設計比較好？',

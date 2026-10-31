@@ -1,0 +1,38 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke-guided-py</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試：手把手專案（Python）——結構檢查 + 每個單元起始程式不通過、參考解答通過（真的用 Pyodide 執行）
+// 無頭瀏覽器的虛擬時間可能讓 Pyodide 的 Worker 跑不完；加 ?struct=1 只做結構檢查。Python 邏輯另有本機 python3 驗證。
+import { GUIDED } from './src/guided-py.js';
+import { runCode } from './src/runner.js';
+globalThis.__noTimeout = true;
+globalThis.__keepAlive = async () => { for (let i = 0; i < 100 && !globalThis.__done; i++) await fetch('/__slow?ms=2000').catch(() => {}); };
+const lines = []; let bad = 0;
+const rep = (ok, m) => { if (!ok) bad++; lines.push((ok ? 'OK   ' : 'FAIL ') + m); out.textContent = lines.join('\n'); };
+addEventListener('unhandledrejection', (e) => { bad++; lines.push('ERROR ' + (e.reason?.stack || e.reason)); out.textContent = lines.join('\n'); });
+const structOnly = new URLSearchParams(location.search).get('struct');
+const ch = GUIDED.chapter;
+rep(ch.id === 'py-cg' && ch.lessons.length >= 6 && ch.lessons.length <= 8 && ch.quiz.length === 4 && ch.event === 'py-cg', `章節 ${ch.title}（${ch.lessons.length} 個單元，測驗 ${ch.quiz.length} 題）`);
+rep(!!GUIDED.event && GUIDED.event.options.length === 2 && !!GUIDED.event.npc, '有辦公室小事件');
+for (const l of ch.lessons) {
+  const f = l.final;
+  const okShape = l.steps.length === 3 && l.steps.every((s) => s.say && s.check?.options?.length >= 2 && s.check.answer >= 0 && s.check.why) && /^📍|📍/.test(l.steps[0].say) && f.kind === 'code' && f.lang === 'py' && f.brief && f.hint && f.steps.length >= 2 && f.starter && f.solution && f.tests && f.starter !== f.solution;
+  rep(okShape, `${l.id} 結構（3 步講解、選擇題、練習欄位）`);
+}
+if (!structOnly) {
+  __keepAlive();
+  for (const l of ch.lessons) {
+    const f = l.final;
+    const must = (code) => (f.must || []).filter((m) => !m.re.test(code)).length;
+    const r0 = await runCode('py', f.starter, f.tests);
+    const f0 = (r0.error ? 1 : 0) + r0.fails.length + must(f.starter);
+    const r1 = await runCode('py', f.solution, f.tests);
+    const f1 = (r1.error ? [r1.error] : []).concat(r1.fails, Array(must(f.solution)).fill('must'));
+    rep(f0 > 0 && f1.length === 0, `${l.id}　起始不通過 ${f0} 項　解答 ${JSON.stringify(f1)}`);
+  }
+}
+globalThis.__done = true;
+out.textContent = lines.join('\n') + '\n' + (bad ? 'FAILED ' + bad : 'ALL OK');
+</script>

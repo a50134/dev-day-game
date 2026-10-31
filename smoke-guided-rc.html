@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke-guided-rc</title>
+<pre id="out">running…</pre>
+<script type="module">
+import { GUIDED } from './src/guided-rc.js';
+import { mountLive, runLive } from './src/practice.js';
+const lines = []; let bad = 0;
+const rep = (ok, m) => { if (!ok) bad++; lines.push((ok ? 'OK   ' : 'FAIL ') + m); out.textContent = lines.join('\n'); };
+addEventListener('unhandledrejection', (e) => { bad++; lines.push('ERROR ' + (e.reason?.stack || e.reason)); out.textContent = lines.join('\n'); });
+const mine = document.createElement('iframe'); mine.style.cssText = 'width:700px;height:420px'; document.body.append(mine);
+for (const l of GUIDED.chapter.lessons) {
+  const e = l.final;
+  const must = (code) => (e.must || []).filter((m) => !m.re.test(code)).length;
+  await mountLive(mine, e.kind, e.starter);
+  const f0 = (await runLive(mine, e)).length + must(e.starter);
+  await mountLive(mine, e.kind, e.solution);
+  const f1 = [...(await runLive(mine, e)), ...Array(must(e.solution)).fill('must')];
+  rep(f0 > 0 && f1.length === 0, `${l.id}　起始不通過 ${f0} 項　解答 ${JSON.stringify(f1)}`);
+  rep(l.steps.length === 3 && l.steps.every((s) => s.check && s.check.answer != null), `${l.id} 3 steps with checks`);
+}
+rep(GUIDED.chapter.lessons.length === 8 && GUIDED.event.options.length === 2 && GUIDED.chapter.quiz.length === 4, 'structure');
+out.textContent = lines.join('\n') + '\n' + (bad ? 'FAILED ' + bad : 'ALL OK');
+</script>
