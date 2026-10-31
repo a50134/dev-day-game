@@ -11,6 +11,7 @@
 - `index.html`：所有 CSS。`src/main.js`：流程與標題列。`src/office.js` / `office3d.js`：辦公室（3D 用 Three.js，失敗退回 2D，`?view=2d` 強制 2D）。`src/stage.js`：教室與專案衝刺上方的 3D 小舞台。
 - 課程：`src/courses.js`（TypeScript、Tailwind，並彙整全部）、`courses-fe.js`（React、Vue）、`courses-be.js`（Node.js、Python）、`courses-api.js`（串接 API）。每堂 = 3 個小步驟（講解＋選擇題）＋ 1 個總練習；每章 = 測驗＋小專案＋辦公室小事件。
 - 每門課最後一章是「手把手專案」（從空白做到完成，6～8 個單元，起始程式 = 上一步解答 + TODO）：`guided-ts/tw/rc/vu/nd/py.js`，串接 API 的在 `courses-api.js`。各有 `smoke-guided-*.html` 測試（Node/Python 的 Worker 在無頭瀏覽器跑不完，改用 node / python3 驗證邏輯）。
+- 串接 API 最前面有「第〇章 入門」（`courses-api0.js`）：不用打字的教學小工具在 `lab.js`（viewer 看真實回應／lab 一行一行開關／blocks 拼積木／blanks 選填空），在課程步驟裡用 `widget:` 欄位；`gate: true` 表示做對才能下一步。測試 `smoke11.html`。
 - 練習類型（`src/practice.js`）：`ts`、`tw`、`react`、`vue`、`web`（串真 API 的一般網頁）、`code`（Node.js / Python，`src/runner.js` 用 Web Worker 真的執行，Python 用 Pyodide）。
 - 專案衝刺（`src/workday.js`）：10 天、多張工單、突發事件、每日檢討。
 

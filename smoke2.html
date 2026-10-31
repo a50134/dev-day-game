@@ -94,7 +94,7 @@ ok(q('h1')?.textContent.includes('教室'), 'C 公司選擇畫面也能從標頭
 ok(qa('button').filter((b) => b.textContent === '進入').length === 7 && !qa('button').some((b) => b.textContent === '上課'), 'C 先選課：七門課各一張卡片（TypeScript、Tailwind、React、Vue、Node.js、Python、串接 API），還看不到單元');
 ok(['Node.js 後端', 'Python', '串接 API'].every((n) => qa('h2').some((h) => h.textContent.includes(n))), 'C 教室裡有 Node.js 後端、Python、串接 API 三門新課');
 await click(qa('.card').find((c) => c.textContent.includes('串接 API')).querySelector('button'));
-ok(qa('button').filter((b) => b.textContent === '上課' || b.textContent === '複習').length === 18, 'C 進入「串接 API」後看到 18 個單元，可以直接上');
+ok(qa('button').filter((b) => b.textContent === '上課' || b.textContent === '複習').length === 24, 'C 進入「串接 API」後看到 24 個單元，可以直接上');
 await click(btnText('選別門課'));
 const twBtn = qa('.card').find((c) => c.textContent.includes('Tailwind')).querySelector('button');
 await click(twBtn);

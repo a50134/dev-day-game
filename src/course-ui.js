@@ -1,6 +1,7 @@
 // 教室：課程選單、上課（小步驟 + 即時檢查 + 總練習）、章節測驗、小專案
 import { COURSES, COURSE_EVENTS } from './courses.js';
 import { exercise } from './practice.js';
+import { mountWidget } from './lab.js';
 
 // 全形英文、全形符號（輸入法沒切乾淨時常見）先轉成半形再比對
 const norm = (s) => String(s).normalize('NFKC').trim().toLowerCase().replace(/[`'"\s]/g, '');
@@ -9,7 +10,7 @@ const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const stepsBox = (ex) => (ex.demo ? '<details class="hsteps demo"><summary><b>👀 先看示範（類似的小例子）</b></summary><div>' + ex.demo + '</div></details>' : '') + (ex.steps ? '<div class="hsteps"><b>💡 提示步驟（卡住再點開，一步一步來）</b>' + ex.steps.map((t, i) => `<details><summary>步驟 ${i + 1}</summary><div>${t}</div></details>`).join('') + '</div>' : '');
 export const optHtml = (o) => String(o).replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
-const POOL = [...new Set(COURSES.flatMap((c) => c.chapters.flatMap((ch) => [...ch.lessons.flatMap((l) => l.steps.map((st) => st.check)), ...ch.quiz])).filter((q) => q.type === 'fill').map((q) => q.answers[0]))];
+const POOL = [...new Set(COURSES.flatMap((c) => c.chapters.flatMap((ch) => [...ch.lessons.flatMap((l) => l.steps.map((st) => st.check)), ...ch.quiz])).filter((q) => q && q.type === 'fill').map((q) => q.answers[0]))];
 
 // 填空題一律改成選擇題（正確答案 + 3 個干擾選項），完全不用打字
 function fillIn(box, q, done) {
@@ -76,9 +77,11 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
       const exit = () => go('classroom');
       if (stepNo < n) {
         const st = l.steps[stepNo];
-        screen(`<h2>${l.title}</h2><div class="dots">${dots}</div>${say('teacher', st.say, 'happy')}<div id="qc" class="qc"></div><div id="nx"></div>${btn('← 回教室', 1)}`, [
+        screen(`<h2>${l.title}</h2><div class="dots">${dots}</div>${say('teacher', st.say, 'happy')}<div id="wdg"></div><div id="qc" class="qc"></div><div id="nx"></div>${btn('← 回教室', 1)}`, [
           () => { S.cur.step++; go('lesson'); }, exit]);
-        quickCheck(qc, st.check, () => { nx.innerHTML = btn(stepNo + 1 < n ? '下一步 →' : '去做總練習 →', 0, 'primary'); });
+        const unlock = () => { nx.innerHTML = btn(stepNo + 1 < n ? '下一步 →' : '去做總練習 →', 0, 'primary'); };
+        if (st.widget) mountWidget(wdg, st.widget, st.widget.gate ? unlock : undefined); // 拼積木 / 選填空：做對了才能往下
+        if (!st.widget?.gate) quickCheck(qc, st.check, unlock);
       } else {
         const ex = l.final;
         screen(`<h2>${l.title}</h2><div class="dots">${dots}</div><div class="split"><div class="side">${say('teacher', ex.brief + '<br><small>' + ex.hint + '</small>' + stepsBox(ex), 'happy')}<div id="nx"></div>${btn('← 回教室', 1)}</div><div class="work1"><div id="exbox" class="exbox"></div></div></div>`, [

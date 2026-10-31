@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke11</title>
+<pre id="out">running…</pre>
+<div id="box"></div>
+<script type="module">
+// 冒煙測試 11：入門章的教學小工具（看回應 / 一行一行開關 / 拼積木 / 選填空）真的能操作、真的執行
+import { mountWidget } from './src/lab.js';
+import { API0 } from './src/courses-api0.js';
+const log = [];
+const show = () => (out.textContent = log.join('\n') + (log.some((l) => /FAIL|ERROR/.test(l)) ? '' : '\nALL OK'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const waitFor = async (fn, ms = 9000) => { for (let t = Date.now(); Date.now() - t < ms; await wait(150)) if (fn()) return true; return false; };
+const L = API0.chapter.lessons;
+const wid = (lid, n) => L.find((l) => l.id === lid).steps[n].widget;
+const fresh = () => { box.innerHTML = ''; const d = document.createElement('div'); box.append(d); return d; };
+
+// viewer
+let d = fresh(); mountWidget(d, wid('apie1', 1));
+const want = [['正常', /200/], ['404', /404/], ['400', /400/], ['500', /500/], ['沒有網路', /Failed to fetch/]];
+for (const [name, re] of want) {
+  [...d.querySelectorAll('.vbtns button')].find((b) => b.textContent.includes(name)).click();
+  ok(await waitFor(() => re.test(d.querySelector('.vres').textContent)), 'viewer：「' + name + '」顯示 ' + re);
+}
+ok(/true|false/.test(d.querySelector('.vres').textContent) || /沒有 status/.test(d.querySelector('.vres').textContent), 'viewer：顯示 ok / 沒有 status');
+
+// lab：全開 → 有氣溫；關 json → data is not defined
+d = fresh(); mountWidget(d, wid('apie2', 1));
+d.querySelector('.runbtn').click();
+ok(await waitFor(() => /氣溫：\s*[\d.-]+/.test(d.querySelector('.rres').textContent)), 'lab：全部打開，執行後印出氣溫');
+d.querySelectorAll('input[data-i]')[2].click(); // 關掉 json 那行
+ok(/拿掉這行/.test(d.textContent), 'lab：關掉一行後出現「拿掉這行會怎樣」');
+d.querySelector('.runbtn').click();
+ok(await waitFor(() => /data is not defined/.test(d.querySelector('.rres').textContent)), 'lab：少了 json 那行 → data is not defined');
+
+// lab：沒網路 + 無 try → 沒被接住的錯誤；加上 try → 抓到錯誤
+d = fresh(); mountWidget(d, wid('apie5', 0));
+d.querySelector('.scn').value = 'off'; d.querySelector('.scn').dispatchEvent(new Event('change'));
+d.querySelector('.runbtn').click();
+ok(await waitFor(() => /沒有被接住的錯誤/.test(d.querySelector('.rres').textContent) && /Failed to fetch/.test(d.querySelector('.rres').textContent)), 'lab：沒網路、沒 try/catch → 沒被接住的錯誤 Failed to fetch');
+d.querySelector('#trytg').click();
+d.querySelector('.runbtn').click();
+ok(await waitFor(() => /抓到錯誤/.test(d.querySelector('.rres').textContent)), 'lab：勾上 try/catch → 抓到錯誤');
+// 404 + 拿掉 ok 檢查 → 沒有錯誤提示
+d.querySelector('.scn').value = 'nf'; d.querySelector('.scn').dispatchEvent(new Event('change'));
+d.querySelectorAll('input[data-i]')[2].click(); // 關掉 ok 檢查
+d.querySelector('.runbtn').click();
+ok(await waitFor(() => /抓到錯誤：\s*Cannot read properties of undefined/.test(d.querySelector('.rres').textContent)), 'lab：404 且沒有 ok 檢查 → 爆出看不懂的 Cannot read properties of undefined');
+
+// blocks
+d = fresh(); let passed = false; mountWidget(d, { ...wid('apie3', 0) }, () => (passed = true));
+const pool = () => [...d.querySelectorAll('.blk')];
+const lines = wid('apie3', 0).lines;
+pool().find((b) => b.textContent.includes('fetch(url)')).click(); // 故意第一個點 fetch
+d = d; for (const l of lines.filter((l) => !l.code.includes('fetch(url)'))) pool().find((b) => !b.disabled && b.textContent.trim() === l.code.split('{URL}').join('…網址…').trim()).click();
+d.querySelector('.chk').click();
+ok(/第 1 行放錯了/.test(d.querySelector('.bmsg').textContent) && !passed, 'blocks：順序放錯 → 提示第 1 行放錯');
+d.querySelector('.clr').click();
+for (const l of lines) pool().find((b) => !b.disabled && b.textContent.trim() === l.code.split('{URL}').join('…網址…').trim()).click();
+d.querySelector('.chk').click();
+ok(await waitFor(() => passed), 'blocks：順序正確 → 通過（解鎖下一步）');
+ok(await waitFor(() => /氣溫：\s*[\d.-]+/.test(d.querySelector('.rres').textContent)), 'blocks：通過後真的執行並印出氣溫');
+
+// blanks
+d = fresh(); passed = false; const bw = wid('apie4', 0); mountWidget(d, bw, () => (passed = true));
+const sel = () => [...d.querySelectorAll('select')];
+sel().forEach((s, i) => { s.value = String((bw.blanks[i].answer + 1) % bw.blanks[i].options.length); s.dispatchEvent(new Event('change')); });
+d.querySelector('.chk').click();
+ok(/再想想/.test(d.querySelector('.bmsg').textContent) && !passed, 'blanks：選錯 → 提示再想想');
+sel().forEach((s, i) => { s.value = String(bw.blanks[i].answer); s.dispatchEvent(new Event('change')); });
+d.querySelector('.chk').click();
+ok(await waitFor(() => passed), 'blanks：全選對 → 通過');
+ok(await waitFor(() => /氣溫：\s*[\d.-]+/.test(d.querySelector('.rres').textContent)), 'blanks：通過後真的執行並印出氣溫');
+d = fresh(); passed = false; const bw2 = wid('apie4', 1); mountWidget(d, bw2, () => (passed = true));
+sel().forEach((s, i) => { s.value = String(bw2.blanks[i].answer); s.dispatchEvent(new Event('change')); });
+d.querySelector('.chk').click();
+ok(await waitFor(() => passed), 'blanks：try/catch 那題全選對 → 通過');
+</script>

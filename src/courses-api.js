@@ -1,6 +1,8 @@
 // 「串接 API」課程：用真的公開 API（Open-Meteo 天氣與地名、USGS 地震、Frankfurter 匯率、維基百科、OpenStreetMap 地圖）練習。
 // 練習 kind 'web'：一般網頁（HTML + JavaScript）。檢查時會真的等網路回來，並和 API 現在的答案比對。
 
+import { API0 } from './courses-api0.js';
+
 const pre = (code) => `<pre>${code.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</pre>`;
 const choice = (q, options, answer, why) => ({ type: 'choice', q, options, answer, why });
 const web = (o) => ({ kind: 'web', ...o });
@@ -1850,6 +1852,7 @@ const API_QUIZ4 = [
 /* ============================ 匯出 ============================ */
 export const API_COURSES = [
   { id: 'api', name: '串接 API 實戰', icon: '🔌', teacher: 'Lily 老師', chapters: [
+    API0.chapter,
     { id: 'api-c1', title: '第一章　fetch 基本功與錯誤處理', lessons: [A0, A1, A2, A2B], quiz: API_QUIZ1, projects: [API_P1], event: 'api-c1' },
     { id: 'api-c2', title: '第二章　真實 API：地名、地圖、地震', lessons: [A3, A4, A5], quiz: API_QUIZ2, projects: [API_P2, API_P3], event: 'api-c2' },
     { id: 'api-c3', title: '第三章　快取 cache：該存什麼、存多久、失敗怎麼辦', lessons: [A6, A7, A8], quiz: API_QUIZ3, projects: [], event: 'api-c3' },
@@ -1858,6 +1861,7 @@ export const API_COURSES = [
 ];
 
 export const API_EVENTS = {
+  'api-c0': API0.event,
   'api-c4': { npc: 'pm', mood: 'happy', text: '我們需要一個「城市天氣小站」給客服查詢用，你一個人從頭做得完嗎？',
     options: [{ label: '可以，我先蓋畫面，再一步一步加功能並逐步測試', fx: { quality: 10, team: 6 } }, { label: '我一次全寫完再來測', fx: { quality: -6, stress: 8 } }] },
   'api-c3': { npc: 'lead', mood: 'worried', text: '我們的天氣頁面每次都重新打 API，免費額度三天就用光了。你剛學過快取，要怎麼處理？',
