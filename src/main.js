@@ -50,6 +50,7 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'tsbtn' || e.target.id === 'classbtn') {
     if (!side.includes(S.phase)) S.back = S.phase;
     S.lunch = false;
+    if (e.target.id !== 'tsbtn') S.room = null;
     return go(e.target.id === 'tsbtn' ? 'tsmenu' : 'classroom');
   }
   if (e.target.id === 'restart') return confirm('會清掉所有進度與程式，確定重新開始？') && (store.clear(), reset(), render());

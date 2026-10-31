@@ -38,7 +38,7 @@ const walk = async (tx, ty) => { // 先橫向再縱向（地圖中間走道是 y
 
 // ---- A. 章節測驗 → 小事件 ----
 const ch = COURSES[0].chapters[0];
-await open({ phase: 'classroom', back: 'office', prog: { ts1: true, ts2: true, ts3: true }, pos: { x: 5, y: 5 }, goal: 'req' });
+await open({ phase: 'classroom', back: 'office', prog: { ts1: true, ts2: true, ts3: true }, room: 'ts', pos: { x: 5, y: 5 }, goal: 'req' });
 ok(q('h1')?.textContent.includes('教室'), 'A 載入存檔直接進教室');
 await click(btnText('開始測驗'));
 for (let i = 0; i < ch.quiz.length; i++) {
@@ -49,6 +49,7 @@ for (let i = 0; i < ch.quiz.length; i++) {
 ok(q('.bubble')?.textContent.includes('及格'), 'A 測驗全對 → 及格');
 await click(btnText('回教室'));
 ok(btnText('開始') || qa('button').some((b) => b.textContent === '開始'), 'A 及格後小專案解鎖');
+await click(btnText('選別門課'));
 await click(btnText('返回'));
 ok(q('.map') && qa('.mark').some((m) => m.textContent === '💬'), 'A 辦公室出現 💬 事件標記');
 await walk(7, 5); await key('s'); // 阿宅在 (7,6)：站在 (7,5) 旁
@@ -81,13 +82,18 @@ ok(q('.split') && q('#edbox'), 'B 走到座位 → 開始實作畫面');
 // ---- C. 標頭的教室入口（任何畫面都能進、能回） ----
 await open(null);
 await click(q('#classbtn'));
-ok(q('h1')?.textContent.includes('教室') && qa('button').some((b) => b.textContent === '上課'), 'C 公司選擇畫面也能從標頭進教室');
-ok(qa('button').filter((b) => b.textContent === '上課').length === 35, 'C 七門課（TypeScript、Tailwind、React、Vue、Node.js、Python、串接 API）共 35 堂課都能直接上，不必照順序');
+ok(q('h1')?.textContent.includes('教室'), 'C 公司選擇畫面也能從標頭進教室');
+ok(qa('button').filter((b) => b.textContent === '進入').length === 7 && !qa('button').some((b) => b.textContent === '上課'), 'C 先選課：七門課各一張卡片（TypeScript、Tailwind、React、Vue、Node.js、Python、串接 API），還看不到單元');
 ok(['Node.js 後端', 'Python', '串接 API'].every((n) => qa('h2').some((h) => h.textContent.includes(n))), 'C 教室裡有 Node.js 後端、Python、串接 API 三門新課');
+await click(qa('.card').find((c) => c.textContent.includes('串接 API')).querySelector('button'));
+ok(qa('button').filter((b) => b.textContent === '上課' || b.textContent === '複習').length === 16, 'C 進入「串接 API」後看到 16 個單元，可以直接上');
+await click(btnText('選別門課'));
 const twBtn = qa('.card').find((c) => c.textContent.includes('Tailwind')).querySelector('button');
 await click(twBtn);
+await click(btnText('上課'));
 ok(q('h2')?.textContent.includes('Tailwind 是什麼'), 'C 可以進 Tailwind 第 1 堂');
 await click(btnText('回教室'));
+await click(btnText('選別門課'));
 await click(btnText('返回'));
 ok(q('h1')?.textContent.includes('前端工程師的一天'), 'C 返回回到原本的畫面');
 document.title = log.some((l) => !l.startsWith('OK')) ? 'FAIL' : 'PASS';

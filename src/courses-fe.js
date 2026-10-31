@@ -56,6 +56,22 @@ const R1 = {
   final: react({
     brief: '修好 App：用 <code>{title}</code> 把標題顯示在 <code>data-testid="title"</code> 的 h1，用 <code>{price}</code> 把「NT$ 價格」顯示在 <code>data-testid="price"</code> 的 p。',
     hint: '<code>&lt;h1 data-testid="title"&gt;{title}&lt;/h1&gt;</code>；<code>&lt;p data-testid="price"&gt;NT$ {price}&lt;/p&gt;</code>。寫完按「檢查」。',
+    demo: `<p>範例（咖啡店）：把店名和一杯拿鐵的價格顯示在畫面上。</p>${pre(`function App() {
+  const shop = '小森咖啡';
+  const price = 120;
+  return (
+    <div>
+      <h1>{shop}</h1>
+      <p>拿鐵 NT$ {price}</p>
+    </div>
+  );
+}`)}<ul><li><code>const shop = ...</code>：先把店名存進變數。為什麼：之後改店名只要改這一行。</li><li><code>{shop}</code>：大括號會把變數的值放到畫面上。為什麼：不用大括號，畫面只會印出 shop 這四個字。</li><li><code>NT$ {price}</code>：固定文字和變數可以接在一起寫。</li></ul>`,
+    steps: [
+      `<p>找到程式裡的 <code>TODO 1</code> 那一行註解，整行換成：</p>${pre('<h1 data-testid="title">{title}</h1>')}<p>為什麼：測試是靠 data-testid 找到這個標題；{title} 才會把變數的內容放進去。</p>`,
+      `<p>找到 <code>TODO 2</code> 那一行，整行換成：</p>${pre('<p data-testid="price">NT$ {price}</p>')}<p>為什麼：「NT$ 」是固定文字直接打，價格是變數，所以只有 price 要包大括號。</p>`,
+      `<p>兩行都換好後，按「檢查」，看畫面有沒有出現標題和價格。</p><p>為什麼：先檢查才知道有沒有打錯，錯了再回頭改就好。</p>`,
+      `<p>最常見的錯誤：忘了大括號，寫成 <code>&lt;h1&gt;title&lt;/h1&gt;</code>，畫面就只會看到 title 這個字，而不是標題內容。為什麼：沒有大括號，React 會把它當成普通文字。</p>`,
+    ],
     starter: `${RH}function App() {
   const title = '星光巡迴演唱會';
   const price = 3800;
@@ -101,6 +117,30 @@ const R2 = {
   final: react({
     brief: '完成 Card 元件：在 <code>data-testid="card-title"</code> 的 h3 顯示 title，在 <code>data-testid="card-price"</code> 的 p 顯示「NT$ 價格」。App 已經用了兩次 Card。',
     hint: 'Card 的參數已經用 <code>{ title, price }</code> 解開了，直接在 JSX 裡用 <code>{title}</code>、<code>{price}</code>。',
+    demo: `<p>範例（書店）：同一個 BookCard 元件，用兩次，每次傳不同的書。</p>${pre(`function BookCard({ name, price }) {
+  return (
+    <div>
+      <h3>{name}</h3>
+      <p>NT$ {price}</p>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div>
+      <BookCard name="小王子" price={280} />
+      <BookCard name="海邊的卡夫卡" price={420} />
+    </div>
+  );
+}`)}<ul><li><code>{ name, price }</code>：把爸爸傳來的資料拆開備用。為什麼：這樣下面可以直接寫 {name}。</li><li><code>name="小王子"</code>：文字用引號傳。<code>price={280}</code>：數字用大括號傳。</li><li>用兩次 BookCard，畫面就有兩本書。為什麼：同一個元件重複使用，只換資料。</li></ul>`,
+    steps: [
+      `<p>先看 <code>function Card({ title, price })</code> 這一行，確認它已經把 title、price 拆開了，這行不用改。</p><p>為什麼：先知道手上有哪些資料可以用。</p>`,
+      `<p>在 <code>TODO</code> 那一行，換成標題：</p>${pre('<h3 data-testid="card-title">{title}</h3>')}<p>為什麼：App 用了兩次 Card，這一行會自動畫出兩個標題。</p>`,
+      `<p>接著在標題下面加上價格：</p>${pre('<p data-testid="card-price">NT$ {price}</p>')}<p>為什麼：測試要找到兩個 card-price 來檢查價格。</p>`,
+      `<p>按「檢查」。</p>`,
+      `<p>最常見的錯誤：把 <code>{title}</code> 寫成 <code>{props.title}</code> 或拼錯變數名字（例如 titel）。為什麼：這個 Card 已經把資料拆開了，名字必須和上面 <code>{ title, price }</code> 一模一樣。</p>`,
+    ],
     starter: `${RH}function Card({ title, price }) {
   return (
     <div>
@@ -159,6 +199,23 @@ const R3 = {
   final: react({
     brief: '做一個票數選擇器：按 <code>＋</code> 加 1、按 <code>−</code> 減 1，但數字不能小於 0。按鈕和數字的 data-testid 已經寫好。',
     hint: '<code>onClick={() => setCount(count + 1)}</code>；減的時候用 <code>Math.max(0, count - 1)</code>。',
+    demo: `<p>範例（咖啡店）：做一個「杯數」計數器，按＋加 1，按−減 1，最少 0。</p>${pre(`function App() {
+  const [cups, setCups] = useState(0);
+  return (
+    <div>
+      <button onClick={() => setCups(Math.max(0, cups - 1))}>−</button>
+      <span>{cups}</span>
+      <button onClick={() => setCups(cups + 1)}>＋</button>
+    </div>
+  );
+}`)}<ul><li><code>useState(0)</code>：建立會變的資料，一開始是 0。為什麼：普通變數改了畫面不會動，state 才會。</li><li><code>setCups(cups + 1)</code>：用 setter 更新。為什麼：React 要靠它才知道要重畫。</li><li><code>Math.max(0, cups - 1)</code>：取 0 和 cups-1 比較大的。為什麼：這樣永遠不會小於 0。</li></ul>`,
+    steps: [
+      `<p>先看一下第一行 <code>const [count, setCount] = useState(0)</code>，已經寫好了，不用改。</p><p>為什麼：count 是目前的數字，setCount 是用來改它的工具。</p>`,
+      `<p>在「＋」按鈕那行，標籤裡加上：</p>${pre('onClick={() => setCount(count + 1)}')}<p>為什麼：點下去時，把 count 換成加 1 的新值，畫面才會更新。</p>`,
+      `<p>在「−」按鈕那行加上：</p>${pre('onClick={() => setCount(Math.max(0, count - 1))}')}<p>為什麼：Math.max 讓數字最少停在 0，不會變負的。</p>`,
+      `<p>刪掉那行 <code>TODO</code> 註解，按「檢查」。</p>`,
+      `<p>最常見的錯誤：寫成 <code>count = count + 1</code> 或 <code>count++</code>。為什麼：直接改變數 React 不知道，數字畫面不會動，一定要用 setCount。</p>`,
+    ],
     starter: `${RH}function App() {
   const [count, setCount] = useState(0);
   return (
@@ -199,6 +256,27 @@ const R4 = {
   final: react({
     brief: '用 <code>seats.map</code> 把每個座位畫成 <code>&lt;li key=… data-testid="seat"&gt;</code>，顯示座位編號；已售出的後面要加「（已售）」。',
     hint: '<code>&lt;li key={s.id} data-testid="seat"&gt;{s.id}{s.sold &amp;&amp; \'（已售）\'}&lt;/li&gt;</code>',
+    demo: `<p>範例（書店）：把書單畫成列表，缺貨的書後面加「（缺貨）」。</p>${pre(`const books = [
+  { id: 'b1', soldOut: false },
+  { id: 'b2', soldOut: true },
+];
+
+function App() {
+  return (
+    <ul>
+      {books.map((b) => (
+        <li key={b.id}>{b.id}{b.soldOut && '（缺貨）'}</li>
+      ))}
+    </ul>
+  );
+}`)}<ul><li><code>books.map((b) =&gt; ...)</code>：每一本書變成一個 li。為什麼：資料有幾筆，畫面就自動有幾個。</li><li><code>key={b.id}</code>：給每一項一個不會重複的名字。為什麼：React 靠它分辨誰是誰。</li><li><code>b.soldOut && '（缺貨）'</code>：左邊是真的才顯示右邊。為什麼：沒缺貨就什麼都不顯示。</li></ul>`,
+    steps: [
+      `<p>在 <code>&lt;ul&gt;</code> 裡面，把 TODO 註解換成 map 的外框：</p>${pre('{seats.map((s) => (\n  \n))}')}<p>為什麼：map 會一個座位畫出一個 li。</p>`,
+      `<p>在 map 的中間，寫一個 li：</p>${pre('<li key={s.id} data-testid="seat">{s.id}</li>')}<p>為什麼：key 讓 React 分辨每一項；data-testid 給測試找。</p>`,
+      `<p>在 <code>{s.id}</code> 後面加上已售的判斷：</p>${pre("{s.sold && '（已售）'}")}<p>為什麼：只有 sold 是 true 的 A2 才會顯示「（已售）」。</p>`,
+      `<p>按「檢查」。</p>`,
+      `<p>最常見的錯誤：忘了 <code>key</code>，或 map 的箭頭後面用了大括號卻沒有 return。為什麼：沒 key 會有警告；用 <code>=&gt; (</code> 小括號包住 li 就不用 return。</p>`,
+    ],
     starter: `${RH}const seats = [
   { id: 'A1', sold: false },
   { id: 'A2', sold: true },
@@ -247,6 +325,22 @@ const R5 = {
   final: react({
     brief: '做一個打招呼表單：input 要受控（value + onChange）；<code>data-testid="hello"</code> 的 p 在名字空白時顯示「請輸入姓名」，否則顯示「你好，名字」。',
     hint: '<code>{name ? \'你好，\' + name : \'請輸入姓名\'}</code>；input 加 <code>value={name}</code> 與 <code>onChange={(e) => setName(e.target.value)}</code>。',
+    demo: `<p>範例（書店）：輸入書名，下面立刻顯示「找：書名」。</p>${pre(`function App() {
+  const [word, setWord] = useState('');
+  return (
+    <div>
+      <input value={word} onChange={(e) => setWord(e.target.value)} />
+      <p>{word ? '找：' + word : '請輸入書名'}</p>
+    </div>
+  );
+}`)}<ul><li><code>value={word}</code>：輸入框顯示的字來自 state。為什麼：這樣 state 才是唯一的資料來源。</li><li><code>onChange=...setWord(e.target.value)</code>：每打一個字就把內容存回 state。為什麼：沒有它，你根本打不進字。</li><li><code>word ? A : B</code>：有字顯示 A，沒字顯示 B。</li></ul>`,
+    steps: [
+      `<p>先找到 <code>&lt;input ...&gt;</code> 那一行，在 placeholder 後面加上：</p>${pre('value={name}')}<p>為什麼：讓輸入框顯示的內容來自 state 的 name。</p>`,
+      `<p>再在同一個 input 加上：</p>${pre('onChange={(e) => setName(e.target.value)}')}<p>為什麼：你打字時，把新內容存進 name，不然輸入框會卡住打不了字。</p>`,
+      `<p>把 p 裡的 TODO 註解換成：</p>${pre("{name ? '你好，' + name : '請輸入姓名'}")}<p>為什麼：name 是空字串時算「沒有」，會顯示請輸入姓名；有字就顯示你好。</p>`,
+      `<p>按「檢查」。</p>`,
+      `<p>最常見的錯誤：只加了 value 卻忘了 onChange，結果輸入框完全打不進字。為什麼：value 把內容鎖在 state，沒有 onChange 去更新 state，就永遠不會變。</p>`,
+    ],
     starter: `${RH}function App() {
   const [name, setName] = useState('');
   return (
@@ -295,6 +389,23 @@ const RC_QUIZ2 = [
 const RC_P1 = react({
   brief: '專案：票數選擇器（props + state）。TicketPicker 要有 state 記住張數：＋加 1、−減 1（不能小於 0），<code>count</code> 顯示張數，<code>total</code> 顯示「NT$ 總額」（價格 × 張數）。',
   hint: '把 <code>const [count, setCount] = useState(0)</code> 放進 TicketPicker；total 用 <code>price * count</code> 算。',
+  demo: `<p>範例（咖啡店）：每杯 120 元，按＋就多一杯，並算出總額。</p>${pre(`function CoffeeCounter({ price }) {
+  const [cups, setCups] = useState(0);
+  return (
+    <div>
+      <button onClick={() => setCups(cups + 1)}>＋</button>
+      <span>{cups}</span>
+      <p>NT$ {price * cups}</p>
+    </div>
+  );
+}`)}<ul><li><code>useState(0)</code> 放在元件裡面。為什麼：每個元件各記各的杯數。</li><li><code>price</code> 是爸爸傳來的 props，<code>cups</code> 是自己的 state。</li><li><code>price * cups</code>：總額不用另外存，每次畫面重畫時現算。為什麼：這樣永遠和杯數同步。</li></ul>`,
+  steps: [
+    `<p>在 TicketPicker 的最上面（TODO 那行）寫：</p>${pre('const [count, setCount] = useState(0);')}<p>為什麼：要有地方記住現在選了幾張。</p>`,
+    `<p>把 count 那個 span 的 <code>0</code> 換成 <code>{count}</code>。</p><p>為什麼：不然畫面永遠顯示 0。</p>`,
+    `<p>在 ＋ 按鈕加 <code>onClick={() => setCount(count + 1)}</code>，− 按鈕加 <code>onClick={() => setCount(Math.max(0, count - 1))}</code>。</p><p>為什麼：加要加 1；減要用 Math.max 避免低於 0。</p>`,
+    `<p>把 total 那行換成：</p>${pre('<p data-testid="total">NT$ {price * count}</p>')}<p>為什麼：總額 = 單價 × 張數，張數變了它會自己重算。</p>`,
+    `<p>最常見的錯誤：total 那行還留著 <code>NT$ 0</code> 沒改，或忘了把 span 裡的 0 換成 <code>{count}</code>。為什麼：寫死的 0 不會跟著 state 變。</p>`,
+  ],
   starter: `${RH}function TicketPicker({ name, price }) {
   // TODO: 用 state 記住張數（從 0 開始，不能小於 0）
   return (
@@ -334,6 +445,24 @@ function App() {
 const RC_P2 = react({
   brief: '專案：活動列表。頁面載入時用 <code>fetch(\'/api/events\')</code> 取得活動，存進 state，畫成 <code>&lt;li data-testid="event"&gt;標題 · 日期&lt;/li&gt;</code>。',
   hint: '<code>useEffect(() => { fetch(...).then(r => r.json()).then(setEvents); }, []);</code>，再用 <code>events.map</code>。',
+  demo: `<p>範例（書店）：頁面載入時向伺服器要書單，畫成列表。</p>${pre(`function App() {
+  const [books, setBooks] = useState([]);
+  useEffect(() => {
+    fetch('/api/books').then((r) => r.json()).then(setBooks);
+  }, []);
+  return (
+    <ul>
+      {books.map((b) => <li key={b.id}>{b.name}</li>)}
+    </ul>
+  );
+}`)}<ul><li><code>useState([])</code>：一開始是空的書單。為什麼：資料還沒到，先給空陣列畫面才不會壞。</li><li><code>useEffect(..., [])</code>：只在載入時要一次資料。為什麼：不寫 [] 會一直重複要。</li><li><code>.then(setBooks)</code>：資料來了存進 state，畫面就自動更新。</li></ul>`,
+  steps: [
+    `<p>在 TODO 1 的位置，先寫 useEffect 的空殼：</p>${pre('useEffect(() => {\n  \n}, []);')}<p>為什麼：useEffect 讓畫面載入後才去要資料；最後的 [] 表示只做一次。</p>`,
+    `<p>在大括號中間寫：</p>${pre("fetch('/api/events').then((r) => r.json()).then(setEvents);")}<p>為什麼：fetch 去要資料，r.json() 把它變成陣列，setEvents 存進 state。</p>`,
+    `<p>在 TODO 2 的位置寫：</p>${pre('{events.map((e) => (\n  <li key={e.id} data-testid="event">{e.title} · {e.date}</li>\n))}')}<p>為什麼：每個活動畫成一個 li，格式是「標題 · 日期」。</p>`,
+    `<p>按「檢查」。</p>`,
+    `<p>最常見的錯誤：useEffect 最後忘了寫 <code>[]</code>。為什麼：沒有它，每次畫面更新都會再要一次資料，然後又更新畫面，變成無限迴圈。</p>`,
+  ],
   starter: `${RH}function App() {
   const [events, setEvents] = useState([]);
   // TODO 1: 頁面載入時 fetch('/api/events')，把結果存進 events
@@ -369,6 +498,25 @@ const RC_P2 = react({
 const RC_P3 = react({
   brief: '專案：活動搜尋。input 受控，列表只顯示「標題包含輸入文字」的活動（空白時全部顯示）。',
   hint: '<code>events.filter((e) =&gt; e.includes(q))</code> 之後再 map；input 加 value 與 onChange。',
+  demo: `<p>範例（書店）：輸入關鍵字，只留下書名有包含它的書。</p>${pre(`const books = ['小王子', '海邊的卡夫卡', '王子復仇記'];
+
+function App() {
+  const [q, setQ] = useState('');
+  const shown = books.filter((b) => b.includes(q));
+  return (
+    <div>
+      <input value={q} onChange={(e) => setQ(e.target.value)} />
+      <ul>{shown.map((b) => <li key={b}>{b}</li>)}</ul>
+    </div>
+  );
+}`)}<ul><li><code>useState('')</code>：記住輸入的字，一開始是空的。</li><li><code>b.includes(q)</code>：書名有包含 q 就留下。為什麼：空字串每個名字都包含，所以沒輸入時全部都顯示。</li><li>畫面用 <code>shown</code> 來 map，而不是原本的 books。為什麼：畫的是篩過的結果。</li></ul>`,
+  steps: [
+    `<p>在 TODO 那行寫：</p>${pre('const shown = events.filter((e) => e.includes(q));')}<p>為什麼：filter 只留下標題包含輸入文字的活動。</p>`,
+    `<p>把下面列表的 <code>events.map</code> 改成 <code>shown.map</code>。</p><p>為什麼：畫面要畫篩選後的結果，不是全部。</p>`,
+    `<p>在 input 加上 <code>value={q}</code> 和 <code>onChange={(e) => setQ(e.target.value)}</code>。</p><p>為什麼：這樣打的字才會存進 q，列表才會跟著變。</p>`,
+    `<p>按「檢查」。</p>`,
+    `<p>最常見的錯誤：filter 寫好了，但 map 還是用 <code>events</code>。為什麼：那樣篩選的結果沒被用到，畫面完全不會變。</p>`,
+  ],
   starter: `${RH}const events = ['星光巡迴演唱會', '回到那一天 2027', '交響樂之夜', '星空露天音樂祭'];
 
 function App() {
@@ -415,6 +563,19 @@ const V1 = {
   final: vue({
     brief: '讓價格顯示出來：把 <code>price</code> 也從 setup 回傳，並在 <code>data-testid="price"</code> 的 p 用 <code>{{ price }}</code> 顯示「NT$ 價格」。',
     hint: '<code>return { title, price };</code>，模板裡寫 <code>NT$ {{ price }}</code>。',
+    demo: `<p>範例（咖啡店）：顯示店名，價格從 setup 回傳。</p>${pre(`const shop = ref('小森咖啡');
+const price = ref(120);
+return { shop, price };
+
+<!-- 模板 -->
+<h1>{{ shop }}</h1>
+<p>拿鐵 NT$ {{ price }}</p>`)}<ul><li><code>ref('小森咖啡')</code>：建立資料。</li><li><code>return { shop, price }</code>：交給模板。為什麼：沒有 return 的資料，模板看不到。</li><li><code>{{ price }}</code>：模板裡用雙大括號顯示，而且不用寫 .value。</li></ul>`,
+    steps: [
+      `<p>找到 setup 最後那行 <code>return { title }</code> 類的回傳，把 TODO 註解換成 price：</p>${pre('title, price')}<p>為什麼：price 要交給模板，模板才找得到它。</p>`,
+      `<p>找到 <code>data-testid="price"</code> 的 p，把裡面的註解換成：</p>${pre('NT$ {{ price }}')}<p>為什麼：雙大括號會把 price 的值顯示出來。</p>`,
+      `<p>按「檢查」。</p>`,
+      `<p>最常見的錯誤：只在模板寫了 <code>{{ price }}</code>，卻忘了在 return 加 price，畫面會是空的。為什麼：模板只看得到 return 出來的東西。</p>`,
+    ],
     starter: vueApp(VSETUP("    const title = ref('星光巡迴演唱會');\n    const price = ref(3800);", 'title /* TODO: 把 price 也交給模板 */'),
       '  <h1 data-testid="title">{{ title }}</h1>\n  <p data-testid="price"><!-- TODO: 顯示 NT$ 價格 --></p>'),
     solution: vueApp(VSETUP("    const title = ref('星光巡迴演唱會');\n    const price = ref(3800);", 'title, price'),
@@ -442,6 +603,16 @@ const V2 = {
   final: vue({
     brief: '① 讓輸入框用 <code>v-model="name"</code> 綁定，<code>data-testid="hello"</code> 就會顯示「你好，名字」 ② 讓 ＋ 按鈕用 <code>@click</code> 把 count 加 1。',
     hint: '<code>&lt;input v-model="name"&gt;</code>；<code>&lt;button @click="count++"&gt;</code>。寫完按「檢查」。',
+    demo: `<p>範例（書店）：輸入書名並顯示，另外一個按鈕計算已加入幾本。</p>${pre(`<input v-model="book">
+<p>找：{{ book }}</p>
+<button @click="n++">加入書單</button>
+<span>{{ n }}</span>`)}<ul><li><code>v-model="book"</code>：輸入框和 book 雙向綁定。為什麼：你打字 book 就跟著變，一行搞定。</li><li><code>{{ book }}</code>：顯示 book 目前的值。</li><li><code>@click="n++"</code>：按下去 n 加 1。為什麼：Vue 在模板裡可以直接寫簡短的程式。</li></ul>`,
+    steps: [
+      `<p>找到 <code>TODO 1</code> 那行的 input，在標籤裡加上：</p>${pre('v-model="name"')}<p>為什麼：這樣打字會自動更新 name，下面的「你好」就會跟著變。</p>`,
+      `<p>找到 <code>TODO 2</code> 那行的按鈕，在標籤裡加上：</p>${pre('@click="count++"')}<p>為什麼：按一下 count 就加 1，旁邊的數字就會跟著變。</p>`,
+      `<p>按「檢查」，會輸入名字、再按兩次＋來測。</p>`,
+      `<p>最常見的錯誤：把 <code>@click</code> 寫成 <code>click</code> 或 <code>onClick</code>。為什麼：Vue 的事件要用 @ 開頭，寫別的它不認得。</p>`,
+    ],
     starter: vueApp(VSETUP("    const name = ref('');\n    const count = ref(0);", 'name, count'),
       '  <input data-testid="name" placeholder="姓名"> <!-- TODO 1: 用 v-model 綁定 name -->\n  <p data-testid="hello">你好，{{ name }}</p>\n  <button data-testid="plus">＋</button> <!-- TODO 2: 用 @click 讓 count 加 1 -->\n  <span data-testid="count">{{ count }}</span>'),
     solution: vueApp(VSETUP("    const name = ref('');\n    const count = ref(0);", 'name, count'),
@@ -472,6 +643,19 @@ const V3 = {
   final: vue({
     brief: '用 <code>v-for</code> 把座位畫成 <code>&lt;li data-testid="seat"&gt;</code> 顯示編號；已售出的用 <code>v-if</code> 多顯示「（已售）」。',
     hint: '<code>&lt;li v-for="s in seats" :key="s.id" data-testid="seat"&gt;{{ s.id }}&lt;span v-if="s.sold"&gt;（已售）&lt;/span&gt;&lt;/li&gt;</code>',
+    demo: `<p>範例（書店）：把書單畫成列表，缺貨的加「（缺貨）」。</p>${pre(`<ul>
+  <li v-for="b in books" :key="b.id">
+    {{ b.id }}
+    <span v-if="b.soldOut">（缺貨）</span>
+  </li>
+</ul>`)}<ul><li><code>v-for="b in books"</code>：每一本書畫一個 li。為什麼：資料有幾筆，畫面就有幾個。</li><li><code>:key="b.id"</code>：給每一項不重複的名字。為什麼：Vue 靠它分辨誰是誰。</li><li><code>v-if="b.soldOut"</code>：缺貨才出現這個 span。為什麼：沒缺貨就整個不產生。</li></ul>`,
+    steps: [
+      `<p>在 <code>&lt;ul&gt;</code> 裡，把 TODO 註解換成 li 的外框：</p>${pre('<li v-for="s in seats" :key="s.id" data-testid="seat"></li>')}<p>為什麼：v-for 會對每個座位畫一個 li。</p>`,
+      `<p>在 li 中間放座位編號：</p>${pre('{{ s.id }}')}<p>為什麼：要讓每個座位顯示自己的編號。</p>`,
+      `<p>編號後面接上：</p>${pre('<span v-if="s.sold">（已售）</span>')}<p>為什麼：只有 sold 是 true 的座位才會多出「（已售）」。</p>`,
+      `<p>按「檢查」。</p>`,
+      `<p>最常見的錯誤：忘了 <code>:key</code> 前面的冒號，寫成 <code>key="s.id"</code>。為什麼：沒冒號就變成純文字 "s.id"，所有項目 key 都一樣。</p>`,
+    ],
     starter: vueApp(VSETUP("    const seats = ref([\n      { id: 'A1', sold: false },\n      { id: 'A2', sold: true },\n      { id: 'A3', sold: false },\n    ]);", 'seats'),
       '  <ul>\n    <!-- TODO: 用 v-for 畫出每個座位 <li data-testid="seat">；已售出的用 v-if 顯示「（已售）」 -->\n  </ul>'),
     solution: vueApp(VSETUP("    const seats = ref([\n      { id: 'A1', sold: false },\n      { id: 'A2', sold: true },\n      { id: 'A3', sold: false },\n    ]);", 'seats'),
@@ -494,6 +678,17 @@ const V4 = {
   final: vue({
     brief: '用 <code>computed</code> 算出 <code>total = count × price</code>，並讓模板顯示。按兩次＋後，total 應是 7600。',
     hint: '<code>const total = computed(() =&gt; count.value * price.value);</code>，並記得 <code>return { count, total }</code>（computed 要先從 Vue 取出來，已經寫好了）。',
+    demo: `<p>範例（咖啡店）：杯數乘單價，用 computed 自動算總額。</p>${pre(`const cups = ref(0);
+const price = ref(120);
+const total = computed(() => cups.value * price.value);
+return { cups, total };`)}<ul><li><code>computed(() =&gt; ...)</code>：用別的資料算出新資料。為什麼：cups 一變，total 自動跟著變。</li><li><code>cups.value</code>：在 JS 裡讀 ref 要加 .value。</li><li><code>return { cups, total }</code>：模板才看得到。</li></ul>`,
+    steps: [
+      `<p>找到 <code>const total = 0;</code> 那行（TODO），改成：</p>${pre('const total = computed(() => count.value * price.value);')}<p>為什麼：總額由 count 和 price 算出來，用 computed 它會自動更新。</p>`,
+      `<p>確認 <code>count.value</code> 和 <code>price.value</code> 都有寫 <code>.value</code>。</p><p>為什麼：在 setup 裡讀 ref 一定要 .value。</p>`,
+      `<p>確認最後的 <code>return</code> 有包含 total（這題已經寫好 <code>count, total</code>）。</p><p>為什麼：模板才顯示得出 total。</p>`,
+      `<p>按「檢查」。</p>`,
+      `<p>最常見的錯誤：寫成 <code>count * price</code> 少了 .value。為什麼：那樣乘的是物件而不是數字，結果會是 NaN。</p>`,
+    ],
     starter: vueApp(VSETUP("    const count = ref(0);\n    const price = ref(3800);\n    // TODO: 用 computed 算出 total = count × price\n    const total = 0;", 'count, total', 'ref, computed'),
       '  <button data-testid="plus" @click="count++">＋</button>\n  <span data-testid="count">{{ count }}</span>\n  <p data-testid="total">NT$ {{ total }}</p>'),
     solution: vueApp(VSETUP("    const count = ref(0);\n    const price = ref(3800);\n    const total = computed(() => count.value * price.value);", 'count, total', 'ref, computed'),
@@ -522,6 +717,18 @@ const V5 = {
   final: vue({
     brief: '讓卡片被點時通知父層：在 ticket-card 的 <code>emits</code> 宣告 <code>pick</code>，按鈕點擊時 <code>$emit(\'pick\')</code>。父層已經寫好 <code>@pick="picked++"</code>。',
     hint: '<code>emits: [\'pick\']</code>，按鈕加 <code>@click="$emit(\'pick\')"</code>。',
+    demo: `<p>範例（書店）：書卡片被點時通知父層，父層計數。</p>${pre(`子元件：
+  emits: ['add'],
+  template: '<button @click="$emit(\'add\')">加入</button>'
+
+父層：
+  <book-card @add="n++"></book-card>`)}<ul><li><code>emits: ['add']</code>：宣告這個元件會發出 add 事件。為什麼：讓人一看就知道它會通知誰。</li><li><code>$emit('add')</code>：點擊時往上喊一聲。為什麼：子元件不能直接改父層的資料，只能通知。</li><li><code>@add="n++"</code>：父層聽到就加 1。</li></ul>`,
+    steps: [
+      `<p>在 <code>props: ['title', 'price'],</code> 的下一行，加上：</p>${pre("emits: ['pick'],")}<p>為什麼：先宣告這個卡片會發出 pick 事件。</p>`,
+      `<p>找到 <code>data-testid="vpick"</code> 的 button，在標籤裡加上：</p>${pre('@click="$emit(\'pick\')"')}<p>為什麼：按下去就通知父層，父層的 <code>@pick="picked++"</code> 才會收到。</p>`,
+      `<p>刪掉 TODO 註解，按「檢查」。</p>`,
+      `<p>最常見的錯誤：事件名字不一致，例如 emits 寫 pick、$emit 卻寫 Pick。為什麼：父層聽的是 pick，名字差一個字母就收不到。</p>`,
+    ],
     starter: `<div id="app">
   <ticket-card title="星光巡迴演唱會" :price="3800" @pick="picked++"></ticket-card>
   <ticket-card title="交響樂之夜" :price="1800" @pick="picked++"></ticket-card>
@@ -581,6 +788,16 @@ const VU_QUIZ2 = [
 const VU_P1 = vue({
   brief: '專案：票數選擇器。＋加 1、−減 1，範圍 0～4。數字到 4 時，才顯示 <code>data-testid="full"</code> 的「已達上限」（用 <code>v-if</code>）。',
   hint: '<code>@click="count = Math.min(4, count + 1)"</code>；<code>&lt;p v-if="count === 4" data-testid="full"&gt;</code>。',
+  demo: `<p>範例（咖啡店）：杯數範圍 0～5，到 5 才顯示「已達上限」。</p>${pre(`<button @click="cups = Math.max(0, cups - 1)">−</button>
+<button @click="cups = Math.min(5, cups + 1)">＋</button>
+<p v-if="cups === 5">已達上限</p>`)}<ul><li><code>Math.max(0, ...)</code>：最小停在 0。</li><li><code>Math.min(5, ...)</code>：最大停在 5。為什麼：兩邊都卡住，數字才不會跑出範圍。</li><li><code>v-if="cups === 5"</code>：剛好 5 才出現。為什麼：其他時候整個元素都不存在。</li></ul>`,
+  steps: [
+    `<p>在 − 按鈕加上：</p>${pre('@click="count = Math.max(0, count - 1)"')}<p>為什麼：最少只能到 0。</p>`,
+    `<p>在 ＋ 按鈕加上：</p>${pre('@click="count = Math.min(4, count + 1)"')}<p>為什麼：最多只能到 4。</p>`,
+    `<p>在「已達上限」那個 p 加上：</p>${pre('v-if="count === 4"')}<p>為什麼：只有剛好 4 張時，這句話才該出現。</p>`,
+    `<p>刪掉 TODO 註解，按「檢查」。</p>`,
+    `<p>最常見的錯誤：v-if 條件寫成 <code>count = 4</code>（一個等號）。為什麼：一個等號是「設定成 4」，要判斷是不是 4 要用三個等號 ===。</p>`,
+  ],
   starter: vueApp(VSETUP('    const count = ref(0);', 'count'),
     '  <h3>星光巡迴演唱會</h3>\n  <button data-testid="minus">−</button> <!-- TODO: 減 1，最小 0 -->\n  <span data-testid="count">{{ count }}</span>\n  <button data-testid="plus">＋</button> <!-- TODO: 加 1，最大 4 -->\n  <p data-testid="full">已達上限</p> <!-- TODO: 只有 count 等於 4 時才顯示 -->'),
   solution: vueApp(VSETUP('    const count = ref(0);', 'count'),
@@ -603,6 +820,18 @@ const VU_P1 = vue({
 const VU_P2 = vue({
   brief: '專案：活動搜尋。輸入框用 <code>v-model="q"</code>；列表用 <code>computed</code> 只顯示「標題包含輸入文字」的活動（空白時全部顯示）。',
   hint: '<code>const events = computed(() =&gt; all.filter((e) =&gt; e.includes(q.value)));</code>',
+  demo: `<p>範例（書店）：輸入書名，列表只留下有包含的書。</p>${pre(`const q = ref('');
+const all = ['小王子', '王子復仇記', '海邊的卡夫卡'];
+const books = computed(() => all.filter((b) => b.includes(q.value)));
+
+<input v-model="q">`)}<ul><li><code>computed</code>：q 一變，books 自動重新篩。為什麼：不用自己記得更新。</li><li><code>b.includes(q.value)</code>：書名包含輸入的字就留下。</li><li><code>v-model="q"</code>：打字會更新 q。</li></ul>`,
+  steps: [
+    `<p>在 setup 裡把 <code>const events = all;</code> 改成：</p>${pre('const events = computed(() => all.filter((e) => e.includes(q.value)));')}<p>為什麼：只留下標題包含輸入文字的活動，q 變了它會自動重算。</p>`,
+    `<p>在搜尋的 input 標籤加上：</p>${pre('v-model="q"')}<p>為什麼：打的字才會存進 q。</p>`,
+    `<p>確認 setup 的 return 裡有 <code>q, events</code>（已經寫好）。</p>`,
+    `<p>按「檢查」。</p>`,
+    `<p>最常見的錯誤：<code>e.includes(q)</code> 少了 .value。為什麼：在 JS 裡讀 ref 一定要 .value，不然拿到的是物件，篩不出東西。</p>`,
+  ],
   starter: vueApp(VSETUP("    const q = ref('');\n    const all = ['星光巡迴演唱會', '回到那一天 2027', '交響樂之夜', '星空露天音樂祭'];\n    const events = all; // TODO: 改成 computed 篩選", 'q, events', 'ref, computed'),
     '  <input data-testid="search" placeholder="搜尋活動"> <!-- TODO: v-model="q" -->\n  <ul>\n    <li v-for="e in events" :key="e" data-testid="event">{{ e }}</li>\n  </ul>'),
   solution: vueApp(VSETUP("    const q = ref('');\n    const all = ['星光巡迴演唱會', '回到那一天 2027', '交響樂之夜', '星空露天音樂祭'];\n    const events = computed(() => all.filter((e) => e.includes(q.value)));", 'q, events', 'ref, computed'),
@@ -613,6 +842,20 @@ const VU_P2 = vue({
 const VU_P3 = vue({
   brief: '專案：購物車總額。列出每個商品（<code>data-testid="item"</code>），並用 <code>computed</code> 算出總額（每項 價格 × 數量 加總），顯示在 <code>data-testid="total"</code>。',
   hint: '<code>items.value.reduce((sum, i) =&gt; sum + i.price * i.qty, 0)</code>。總額應是 3800×2 + 650×1 = 8250。',
+  demo: `<p>範例（咖啡店）：用 reduce 把每杯的 價格 × 數量 加總。</p>${pre(`const items = ref([
+  { name: '拿鐵', price: 120, qty: 2 },
+  { name: '司康', price: 80, qty: 1 },
+]);
+const sum = computed(() =>
+  items.value.reduce((s, i) => s + i.price * i.qty, 0)
+);`)}<ul><li><code>reduce(..., 0)</code>：從 0 開始，一項一項往上加。為什麼：就像收銀機一筆筆累加。</li><li><code>i.price * i.qty</code>：單價乘數量，就是這一項的小計。</li><li><code>items.value</code>：JS 裡讀 ref 要 .value。</li><li>用 computed 包起來。為什麼：數量變了總額自動更新。</li></ul>`,
+  steps: [
+    `<p>在 TODO 那行寫：</p>${pre('const sum = computed(() => items.value.reduce((s, i) => s + i.price * i.qty, 0));')}<p>為什麼：把每項的 價格 × 數量 加起來，3800×2 + 650×1 = 8250。</p>`,
+    `<p>把 setup 的 return 改成：</p>${pre('items, sum')}<p>為什麼：sum 要交給模板才顯示得出來。</p>`,
+    `<p>把 total 那行的 <code>0</code> 改成 <code>{{ sum }}</code>，變成：</p>${pre('合計 NT$ {{ sum }}')}<p>為什麼：不然畫面永遠是寫死的 0。</p>`,
+    `<p>按「檢查」。</p>`,
+    `<p>最常見的錯誤：忘了把 sum 加進 return。為什麼：沒 return，模板找不到 sum，畫面會是空的。</p>`,
+  ],
   starter: vueApp(VSETUP("    const items = ref([\n      { name: '星光演唱會', price: 3800, qty: 2 },\n      { name: '周邊 T-shirt', price: 650, qty: 1 },\n    ]);\n    // TODO: 用 computed 算出總額", 'items', 'ref, computed'),
     '  <ul>\n    <li v-for="item in items" :key="item.name" data-testid="item">{{ item.name }} × {{ item.qty }}</li>\n  </ul>\n  <p data-testid="total">合計 NT$ 0</p> <!-- TODO: 顯示 computed 算出的總額 -->'),
   solution: vueApp(VSETUP("    const items = ref([\n      { name: '星光演唱會', price: 3800, qty: 2 },\n      { name: '周邊 T-shirt', price: 650, qty: 1 },\n    ]);\n    const sum = computed(() => items.value.reduce((s, i) => s + i.price * i.qty, 0));", 'items, sum', 'ref, computed'),

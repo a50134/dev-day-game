@@ -6,6 +6,7 @@ import { exercise } from './practice.js';
 const norm = (s) => String(s).normalize('NFKC').trim().toLowerCase().replace(/[`'"\s]/g, '');
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 // 選項是「文字」：< 和 > 要跳脫，否則像 <div class="a"> 會被當成真的標籤、按鈕變空白（& 不動，保留 &lt; 這類寫法）
+const stepsBox = (ex) => (ex.demo ? '<details class="hsteps demo"><summary><b>👀 先看示範（類似的小例子）</b></summary><div>' + ex.demo + '</div></details>' : '') + (ex.steps ? '<div class="hsteps"><b>💡 提示步驟（卡住再點開，一步一步來）</b>' + ex.steps.map((t, i) => `<details><summary>步驟 ${i + 1}</summary><div>${t}</div></details>`).join('') + '</div>' : '');
 export const optHtml = (o) => String(o).replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
 const POOL = [...new Set(COURSES.flatMap((c) => c.chapters.flatMap((ch) => [...ch.lessons.flatMap((l) => l.steps.map((st) => st.check)), ...ch.quiz])).filter((q) => q.type === 'fill').map((q) => q.answers[0]))];
@@ -40,23 +41,30 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
     classroom() {
       const acts = [];
       const add = (fn) => acts.push(fn) - 1;
-      const html = COURSES.map((c) => {
-        return `<div class="card"><h2>${c.icon} ${c.name}</h2>` + c.chapters.map((ch) => {
-        const lessons = ch.lessons.map((l) => {
-          const ok = done(l.id), open = true; // 每堂課都能自由進去上，不必照順序
-          return `<div class="row ${open ? '' : 'lock'}">${ok ? '✅' : open ? '▶' : '🔒'} ${l.title} ${open ? btn(ok ? '複習' : '上課', add(() => { S.cur = { lesson: l.id, step: 0 }; go('lesson'); })) : ''}</div>`;
+      const room = COURSES.find((c) => c.id === S.room);
+      let html;
+      if (!room) { // 第一層：先選課
+        html = COURSES.map((c) => {
+          const ls = c.chapters.flatMap((ch) => ch.lessons), n = ls.filter((l) => done(l.id)).length;
+          return `<div class="card"><h2>${c.icon} ${c.name}</h2><div class="row">共 ${ls.length} 個單元，已完成 ${n} 個 ${btn('進入', add(() => { S.room = c.id; go('classroom'); }))}</div></div>`;
         }).join('');
-        const lessonsDone = ch.lessons.every((l) => done(l.id)), quizOk = done(ch.id + '-quiz');
-        const quiz = `<div class="row ${lessonsDone ? '' : 'lock'}">${quizOk ? '✅' : lessonsDone ? '📝' : '🔒'} 章節測驗（答對 3/4 以上及格）${lessonsDone ? btn(quizOk ? '再考一次' : '開始測驗', add(() => { S.cur = { quiz: ch.id, i: 0, right: 0 }; go('quiz'); })) : ''}</div>`;
-        const projects = ch.projects.map((p, i) => {
-          const k = `${ch.id}-p${i}`;
-          return `<div class="row ${quizOk ? '' : 'lock'}">${done(k) ? '✅' : quizOk ? '🛠' : '🔒'} 小專案 ${i + 1} ${quizOk ? btn(done(k) ? '再做一次' : '開始', add(() => { S.cur = { project: k, ch: ch.id, i }; go('project'); })) : ''}</div>`;
-        }).join('');
-        return `<h4>${ch.title}</h4>${lessons}${quiz}${projects}`;
-      }).join('') + '</div>';
-      }).join('');
-      const back = add(() => go(S.back || 'office'));
-      screen(`<h1>🏫 教室</h1>${say('teacher', '歡迎來上課！每堂課會先講一個小觀念，馬上讓你試一試。一步一步來，不用急～', 'happy')}${html}${btn('← 返回', back)}`, acts);
+      } else { // 第二層：選單元
+        html = `<div class="card"><h2>${room.icon} ${room.name}</h2>` + room.chapters.map((ch) => {
+          const lessons = ch.lessons.map((l) => {
+            const ok = done(l.id); // 每個單元都能自由進去，不必照順序
+            return `<div class="row">${ok ? '✅' : '▶'} ${l.title} ${btn(ok ? '複習' : '上課', add(() => { S.cur = { lesson: l.id, step: 0 }; go('lesson'); }))}</div>`;
+          }).join('');
+          const lessonsDone = ch.lessons.every((l) => done(l.id)), quizOk = done(ch.id + '-quiz');
+          const quiz = `<div class="row ${lessonsDone ? '' : 'lock'}">${quizOk ? '✅' : lessonsDone ? '📝' : '🔒'} 章節測驗（答對 3/4 以上及格）${lessonsDone ? btn(quizOk ? '再考一次' : '開始測驗', add(() => { S.cur = { quiz: ch.id, i: 0, right: 0 }; go('quiz'); })) : ''}</div>`;
+          const projects = ch.projects.map((p, i) => {
+            const k = `${ch.id}-p${i}`;
+            return `<div class="row ${quizOk ? '' : 'lock'}">${done(k) ? '✅' : quizOk ? '🛠' : '🔒'} 小專案 ${i + 1} ${quizOk ? btn(done(k) ? '再做一次' : '開始', add(() => { S.cur = { project: k, ch: ch.id, i }; go('project'); })) : ''}</div>`;
+          }).join('');
+          return `<h4>${ch.title}</h4>${lessons}${quiz}${projects}`;
+        }).join('') + '</div>';
+      }
+      const back = add(() => { if (room) { S.room = null; go('classroom'); } else go(S.back || 'office'); });
+      screen(`<h1>🏫 教室</h1>${say('teacher', room ? '選一個單元開始吧！每個單元先講觀念、再示範、最後換你動手。' : '歡迎來上課！先選一門課，再選要上的單元～', 'happy')}${html}${btn(room ? '← 選別門課' : '← 返回', back)}`, acts);
     },
 
     lesson() {
@@ -73,7 +81,7 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
         quickCheck(qc, st.check, () => { nx.innerHTML = btn(stepNo + 1 < n ? '下一步 →' : '去做總練習 →', 0, 'primary'); });
       } else {
         const ex = l.final;
-        screen(`<h2>${l.title}</h2><div class="dots">${dots}</div><div class="split"><div class="side">${say('teacher', ex.brief + '<br><small>' + ex.hint + '</small>', 'happy')}<div id="nx"></div>${btn('← 回教室', 1)}</div><div class="work1"><div id="exbox" class="exbox"></div></div></div>`, [
+        screen(`<h2>${l.title}</h2><div class="dots">${dots}</div><div class="split"><div class="side">${say('teacher', ex.brief + '<br><small>' + ex.hint + '</small>' + stepsBox(ex), 'happy')}<div id="nx"></div>${btn('← 回教室', 1)}</div><div class="work1"><div id="exbox" class="exbox"></div></div></div>`, [
           () => { exit(); }, exit]);
         const first = !done(l.id);
         exercise(exbox, ex, { key: 'ex-' + l.id, onPass: () => {
@@ -112,7 +120,7 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
     project() {
       const ch = COURSES.flatMap((c) => c.chapters).find((x) => x.id === S.cur.ch);
       const ex = ch.projects[S.cur.i];
-      screen(`<h2>🛠 ${ch.title}　小專案 ${S.cur.i + 1}</h2><div class="split"><div class="side">${say('teacher', ex.brief + '<br><small>' + ex.hint + '</small>', 'happy')}<div id="nx"></div>${btn('← 回教室', 0)}</div><div class="work1"><div id="exbox" class="exbox"></div></div></div>`,
+      screen(`<h2>🛠 ${ch.title}　小專案 ${S.cur.i + 1}</h2><div class="split"><div class="side">${say('teacher', ex.brief + '<br><small>' + ex.hint + '</small>' + stepsBox(ex), 'happy')}<div id="nx"></div>${btn('← 回教室', 0)}</div><div class="work1"><div id="exbox" class="exbox"></div></div></div>`,
         [() => go('classroom')]);
       const first = !done(S.cur.project);
       exercise(exbox, ex, { key: 'ex-' + S.cur.project, onPass: () => {

@@ -38,7 +38,7 @@ const vueDoc = (code) => `<!doctype html><meta charset="utf-8"><script src="${VU
 // 串接 API 的練習（kind 'web'）：一般網頁。fetch 包一層，檢查時可以讓它故意失敗（__failFetch = true 斷網、'http' 回 500），測試錯誤處理
 const WEBPRE = `<script>window.__error = null; addEventListener('error', (e) => { window.__error = e.message; });
 const __f = window.fetch.bind(window);
-window.fetch = (...a) => window.__failFetch === 'http' ? Promise.resolve(new Response('{"current":{"temperature_2m":-999}}', { status: 500 })) : window.__failFetch ? Promise.reject(new TypeError('Failed to fetch')) : __f(...a);</script>`;
+window.fetch = (...a) => (window.__fc = (window.__fc || 0) + 1, window.__failFetch === 'http' ? Promise.resolve(new Response('{"current":{"temperature_2m":-999}}', { status: 500 })) : window.__failFetch ? Promise.reject(new TypeError('Failed to fetch')) : __f(...a));</script>`;
 const webDoc = (code) => `<!doctype html><meta charset="utf-8">${WEBPRE}<body style="margin:0;padding:12px;font-family:sans-serif">${code}</body>`;
 export const mountLive = (frame, kind, code) => new Promise((res) => {
   frame.onload = () => setTimeout(res, kind === 'web' ? 300 : 900);

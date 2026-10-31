@@ -20,6 +20,8 @@
 - `smoke10.html` 和 `test-course.html` 的 `web` 題會真的連網（Open-Meteo、USGS、Frankfurter、維基）。
 
 ## 注意
+- 在 WSL 用 Windows Edge 無頭測試時，網址不要用 `localhost:8000`（WSL 轉發偶爾會截斷 60KB 以上的檔案，頁面變空白、測試亂失敗），改用 `hostname -I` 的 IP，例如 `http://172.x.x.x:8000/`。
+- 教室是兩層：先選課（`S.room`），再選單元。測試要先點「進入」。
 - 事件處理函式不要寫 `e.key === 'Enter' && fn()`（回傳 false 會吃掉按鍵）。元素 id 不要用 `prompt` 這類 window 既有名稱。
 - esm.sh 載入 CodeMirror 不要加 `?deps=`。
 - 頂層 `const status` 之類名稱會和 window 衝突，範例程式用 `statusEl`。

@@ -20,6 +20,13 @@ const N1 = {
   final: js({
     brief: '寫一個函式 <code>price(qty)</code>，回傳 qty 張票的總價（每張 3800 元）。再用 <code>console.log</code> 印出 <code>price(2)</code> 的結果。',
     hint: '<code>function price(qty) { return qty * 3800; }</code>，然後 <code>console.log(price(2));</code>。寫完按「送出檢查」。',
+    demo: `<p>範例：算咖啡的總價（一杯 60 元），做法一樣。</p>${pre("function coffee(cups) {   // 開一個函式，名字 coffee，收一個數字 cups\n  return cups * 60;        // 把杯數乘 60，用 return 把答案交出去\n}\n\nconsole.log(coffee(3));    // 呼叫函式，印出 180\n// 為什麼要 console.log：後端沒有畫面，不印就看不到結果")}`,
+    steps: [
+      `<p>先打函式的開頭：<code>function price(qty) {</code>，換行。</p><p>為什麼：先有一個叫 price 的函式，檢查才找得到它。qty 是「幾張票」，等一下呼叫時才會填進去。</p>`,
+      `<p>下一行縮排打：<code>return qty * 3800;</code>，再換行打 <code>}</code> 把函式關起來。</p><p>為什麼：每張票 3800，張數乘 3800 就是總價；return 才會把答案交出去。</p>`,
+      `<p>空一行，再打：<code>console.log(price(2));</code></p><p>為什麼：後端沒有畫面，要看結果得靠 console.log 印出來，檢查也會看有沒有印出 7600。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會真的執行你的程式，再比對結果。最常見的錯：函式裡忘了寫 <code>return</code>，結果會變成 undefined。</p>`,
+    ],
     starter: '// TODO 1: 寫 price(qty)，回傳 qty 張票的總價（每張 3800）\n\n// TODO 2: 用 console.log 印出 price(2)\n',
     solution: 'function price(qty) {\n  return qty * 3800;\n}\n\nconsole.log(price(2));\n',
     tests: "check(typeof price === 'function', '要有一個叫 price 的函式');\nif (typeof price === 'function') { check(price(1) === 3800, 'price(1) 應該是 3800'); check(price(2) === 7600, 'price(2) 應該是 7600'); }\ncheck(output().includes('7600'), '要用 console.log 印出 price(2) 的結果（7600）');",
@@ -38,6 +45,14 @@ const N2 = {
   final: js({
     brief: '寫 <code>async function getSeatName(id)</code>：用 <code>await fakeDb(id)</code> 查座位，成功就回傳座位的 <code>id</code>；失敗（找不到）就回傳文字「查無座位」。',
     hint: '<code>try { const seat = await fakeDb(id); return seat.id; } catch (err) { return \'查無座位\'; }</code>',
+    demo: `<p>範例：查飲料價錢，查不到就回「沒賣」。</p>${pre("const fakeMenu = (name) => new Promise((ok, no) =>\n  setTimeout(() => (name === '紅茶' ? ok({ name, price: 40 }) : no(new Error('沒這個'))), 50));\n// 假菜單：只有紅茶查得到，其他都失敗（要等 50 毫秒）\n\nasync function getPrice(name) {   // async 才能在裡面用 await\n  try {                            // 先試試看，失敗就跳去 catch\n    const item = await fakeMenu(name); // 等查詢結果回來\n    return item.price;             // 成功：回傳價錢\n  } catch (err) {                  // 失敗：接住錯誤，程式不會壞掉\n    return '沒賣';\n  }\n}")}`,
+    steps: [
+      `<p>在 TODO 那裡打：<code>async function getSeatName(id) {</code>，換行。</p><p>為什麼：要用 await 等資料，函式前面一定要加 async。</p>`,
+      `<p>下一行打：<code>try {</code>，再下一行打 <code>const seat = await fakeDb(id);</code></p><p>為什麼：fakeDb 要等一下才回來，await 會等它回來再往下走。放在 try 裡，失敗才有人接。</p>`,
+      `<p>再下一行打：<code>return seat.id;</code>，然後打 <code>}</code> 把 try 關起來。</p><p>為什麼：查到了就回傳座位的 id。</p>`,
+      `<p>接著打：<code>catch (err) {</code>，下一行 <code>return '查無座位';</code>，再 <code>}</code>，最後再一個 <code>}</code> 關函式。</p><p>為什麼：查不到時 fakeDb 會丟錯，catch 把它接住，改回傳友善的文字。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會用 A1 和 Z9 各試一次。最常見的錯：忘了寫 <code>await</code>，這樣拿到的是 Promise，不是座位，catch 也永遠不會觸發。</p>`,
+    ],
     starter: "// 假資料庫：只有 A1 查得到，其他都會失敗\nconst fakeDb = (id) => new Promise((ok, no) => setTimeout(() => (id === 'A1' ? ok({ id, sold: false }) : no(new Error('找不到座位'))), 50));\n\n// TODO: 寫 async function getSeatName(id)\n",
     solution: "const fakeDb = (id) => new Promise((ok, no) => setTimeout(() => (id === 'A1' ? ok({ id, sold: false }) : no(new Error('找不到座位'))), 50));\n\nasync function getSeatName(id) {\n  try {\n    const seat = await fakeDb(id);\n    return seat.id;\n  } catch (err) {\n    return '查無座位';\n  }\n}\n",
     must: [{ re: /await/, msg: '請用 await 等查詢結果' }],
@@ -57,6 +72,14 @@ const N3 = {
   final: js({
     brief: '寫兩個函式：<code>availableIds(seats)</code> 回傳「還沒售出」座位的 id 陣列；<code>revenue(seats)</code> 回傳「已售出」座位的價格總和。',
     hint: '<code>seats.filter((s) =&gt; !s.sold).map((s) =&gt; s.id)</code>；<code>seats.filter((s) =&gt; s.sold).reduce((sum, s) =&gt; sum + s.price, 0)</code>',
+    demo: `<p>範例：書櫃裡挑出「還沒讀」的書名，並加總「已讀」的頁數。</p>${pre("const books = [\n  { name: '甲', read: false, pages: 100 },\n  { name: '乙', read: true, pages: 200 },\n  { name: '丙', read: true, pages: 50 },\n];\n\nconst unreadNames = (list) => list.filter((b) => !b.read).map((b) => b.name);\n// filter 先留下 read 是 false 的，map 再把每本換成書名 → ['甲']\n\nconst pagesRead = (list) => list.filter((b) => b.read).reduce((sum, b) => sum + b.pages, 0);\n// filter 留下已讀的，reduce 從 0 開始一本一本把頁數加起來 → 250")}`,
+    steps: [
+      `<p>在 TODO 下面打：<code>const availableIds = (list) =&gt; list.filter((s) =&gt; !s.sold)</code>（先不要換行結束）。</p><p>為什麼：先用 filter 挑出沒售出的座位，<code>!s.sold</code> 的意思是「sold 不是 true」。</p>`,
+      `<p>接著在同一行後面打：<code>.map((s) =&gt; s.id);</code></p><p>為什麼：filter 挑出來的是整個座位物件，我們只要 id，所以用 map 把每個座位換成它的 id。</p>`,
+      `<p>換行打：<code>const revenue = (list) =&gt; list.filter((s) =&gt; s.sold)</code></p><p>為什麼：算營收只算已售出的，所以這次挑 sold 是 true 的。</p>`,
+      `<p>後面接著打：<code>.reduce((sum, s) =&gt; sum + s.price, 0);</code></p><p>為什麼：reduce 把很多筆加成一個數字，最後的 0 是起點，一筆一筆把 price 加上去。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會換一批資料再測一次。最常見的錯：reduce 最後忘了寫起點 <code>, 0</code>，或是 filter 的條件寫反（少了或多了 !）。</p>`,
+    ],
     starter: "const seats = [\n  { id: 'A1', sold: false, price: 3800 },\n  { id: 'A2', sold: true, price: 3800 },\n  { id: 'A3', sold: true, price: 2800 },\n];\n\n// TODO 1: availableIds(seats) → 沒售出的 id 陣列\n// TODO 2: revenue(seats) → 已售出座位的價格總和\n",
     solution: "const seats = [\n  { id: 'A1', sold: false, price: 3800 },\n  { id: 'A2', sold: true, price: 3800 },\n  { id: 'A3', sold: true, price: 2800 },\n];\n\nconst availableIds = (list) => list.filter((s) => !s.sold).map((s) => s.id);\nconst revenue = (list) => list.filter((s) => s.sold).reduce((sum, s) => sum + s.price, 0);\n",
     tests: "check(typeof availableIds === 'function' && typeof revenue === 'function', '要有 availableIds 和 revenue 兩個函式');\nif (typeof availableIds === 'function') check(JSON.stringify(availableIds(seats)) === '[\"A1\"]', 'availableIds(seats) 應該是 [\"A1\"]');\nif (typeof revenue === 'function') check(revenue(seats) === 6600, 'revenue(seats) 應該是 6600（3800 + 2800）');\nif (typeof availableIds === 'function') check(JSON.stringify(availableIds([{ id: 'B1', sold: false, price: 1 }, { id: 'B2', sold: false, price: 1 }])) === '[\"B1\",\"B2\"]', '換一批資料也要對：兩個都沒售出時應該是 [\"B1\",\"B2\"]');",
@@ -75,6 +98,14 @@ const N4 = {
   final: js({
     brief: '做兩支 API：<code>GET /events</code> 回傳全部活動；<code>GET /events/:id</code> 回傳該活動，找不到就回 404 和 <code>{ error: \'找不到活動\' }</code>。',
     hint: '<code>events.find((e) =&gt; e.id === Number(req.params.id))</code>。找不到時 <code>res.status(404).json({ error: \'找不到活動\' })</code>。',
+    demo: `<p>範例：書店 API，列出全部書，或用 id 找一本。</p>${pre("const express = require('express');\nconst app = express();\nconst books = [{ id: 1, name: '甲書' }, { id: 2, name: '乙書' }];\n\napp.get('/books', (req, res) => res.json(books));\n// 有人要 /books，就把整個陣列用 JSON 回給他\n\napp.get('/books/:id', (req, res) => {          // :id 是會變的部分\n  const found = books.find((b) => b.id === Number(req.params.id));\n  // req.params.id 是文字，要 Number() 轉成數字才比得起來\n  if (!found) return res.status(404).json({ error: '找不到書' }); // 找不到回 404\n  res.json(found);                              // 找到就回那一本\n});")}`,
+    steps: [
+      `<p>在 TODO 1 下面打：<code>app.get('/events', (req, res) =&gt; res.json(events));</code></p><p>為什麼：這就是第一個「窗口」：前端要 /events，就把整個活動陣列用 JSON 回給他。</p>`,
+      `<p>空一行，打：<code>app.get('/events/:id', (req, res) =&gt; {</code></p><p>為什麼：<code>:id</code> 是會變的部分，/events/1、/events/2 都會進到這裡。</p>`,
+      `<p>下一行打：<code>const found = events.find((e) =&gt; e.id === Number(req.params.id));</code></p><p>為什麼：網址上的 id 是文字 '1'，活動的 id 是數字 1，不轉成數字用 === 永遠對不上。</p>`,
+      `<p>下一行打：<code>if (!found) return res.status(404).json({ error: '找不到活動' });</code></p><p>為什麼：找不到要明確告訴前端 404，不能假裝沒事。</p>`,
+      `<p>最後打 <code>res.json(found);</code>，再打 <code>});</code> 關起來，按「送出檢查」。</p><p>為什麼：找到了就把那個活動回傳。最常見的錯：忘了 <code>Number(...)</code>，結果每個 id 都回 404。</p>`,
+    ],
     starter: "const express = require('express');\nconst app = express();\nconst events = [\n  { id: 1, title: '星光巡迴演唱會' },\n  { id: 2, title: '交響樂之夜' },\n];\n\n// TODO 1: GET /events 回傳全部活動\n// TODO 2: GET /events/:id 回傳該活動；找不到回 404 與 { error: '找不到活動' }\n",
     solution: "const express = require('express');\nconst app = express();\nconst events = [\n  { id: 1, title: '星光巡迴演唱會' },\n  { id: 2, title: '交響樂之夜' },\n];\n\napp.get('/events', (req, res) => res.json(events));\n\napp.get('/events/:id', (req, res) => {\n  const found = events.find((e) => e.id === Number(req.params.id));\n  if (!found) return res.status(404).json({ error: '找不到活動' });\n  res.json(found);\n});\n",
     tests: "const a = await app.handle('GET', '/events');\ncheck(a.status === 200 && Array.isArray(a.body) && a.body.length === 2, 'GET /events 應該回傳 2 個活動的陣列');\nconst b = await app.handle('GET', '/events/2');\ncheck(b.body && b.body.title === '交響樂之夜', 'GET /events/2 應該回傳「交響樂之夜」');\nconst c = await app.handle('GET', '/events/99');\ncheck(c.status === 404, '找不到的活動應該回 404，目前是 ' + c.status);\ncheck(c.body && c.body.error === '找不到活動', '404 要附上 { error: \\'找不到活動\\' }');",
@@ -93,6 +124,15 @@ const N5 = {
   final: js({
     brief: '做 <code>POST /book</code>（body：<code>{ seat }</code>）：沒傳 seat → 400；座位已在 <code>booked</code> 裡 → 409；否則加進 booked，回 201 和 <code>{ ok: true }</code>。',
     hint: '<code>booked.has(seat)</code> 檢查，<code>booked.add(seat)</code> 訂位。順序：先檢查有沒有傳、再檢查有沒有被訂走、最後才訂位。',
+    demo: `<p>範例：社團報名 <code>POST /join</code>，沒傳名字 400，已報名 409，成功 201。</p>${pre("const members = new Set(['小明']);   // 已經報名的人\n\napp.post('/join', (req, res) => {\n  const { name } = req.body;            // 從前端傳來的 body 取出名字\n  if (!name) return res.status(400).json({ error: '請填名字' }); // 沒傳：400\n  if (members.has(name)) return res.status(409).json({ error: '已報名' }); // 重複：409\n  members.add(name);                    // 都沒問題，才真的加進去\n  res.status(201).json({ ok: true });   // 建立成功：201\n});")}`,
+    steps: [
+      `<p>在 TODO 下面打：<code>app.post('/book', (req, res) =&gt; {</code>，換行。</p><p>為什麼：前端「送東西」用 POST，路徑是 /book。</p>`,
+      `<p>下一行打：<code>const { seat } = req.body;</code></p><p>為什麼：前端送來的座位在 req.body 裡，先取出來才能檢查。</p>`,
+      `<p>下一行打：<code>if (!seat) return res.status(400).json({ error: '請選擇座位' });</code></p><p>為什麼：沒傳 seat 是前端的錯，要回 400，後面的檢查也不用跑了。</p>`,
+      `<p>下一行打：<code>if (booked.has(seat)) return res.status(409).json({ error: '座位已被訂走' });</code></p><p>為什麼：座位已經在 booked 裡，代表被別人搶先了，回 409（衝突）。</p>`,
+      `<p>最後打：<code>booked.add(seat);</code>、<code>res.status(201).json({ ok: true });</code>，再 <code>});</code> 關起來。</p><p>為什麼：兩關都過了才真的訂位，並回 201 表示建立成功。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會連訂 A1 兩次。最常見的錯：順序反了，先 <code>booked.add(seat)</code> 再檢查，結果每個座位都變成「已被訂走」。</p>`,
+    ],
     starter: "const express = require('express');\nconst app = express();\napp.use(express.json());\nconst booked = new Set(['A2']); // 已經被訂走的座位\n\n// TODO: POST /book\n",
     solution: "const express = require('express');\nconst app = express();\napp.use(express.json());\nconst booked = new Set(['A2']);\n\napp.post('/book', (req, res) => {\n  const { seat } = req.body;\n  if (!seat) return res.status(400).json({ error: '請選擇座位' });\n  if (booked.has(seat)) return res.status(409).json({ error: '座位已被訂走' });\n  booked.add(seat);\n  res.status(201).json({ ok: true });\n});\n",
     tests: "check((await app.handle('POST', '/book', {})).status === 400, '沒傳 seat 應該回 400');\ncheck((await app.handle('POST', '/book', { seat: 'A2' })).status === 409, '已被訂走的 A2 應該回 409');\nconst ok = await app.handle('POST', '/book', { seat: 'A1' });\ncheck(ok.status === 201 && ok.body && ok.body.ok === true, '訂 A1 應該回 201 和 { ok: true }');\ncheck((await app.handle('POST', '/book', { seat: 'A1' })).status === 409, 'A1 被訂走後，再訂一次應該回 409（不能重複訂位）');",
@@ -115,6 +155,14 @@ const ND_QUIZ2 = [
 const ND_P1 = js({
   brief: '專案：訂單統計。寫 <code>totalByEvent(orders)</code>，把訂單依活動名稱加總張數，回傳像 <code>{ 星光: 5, 交響: 1 }</code> 的物件。',
   hint: '<code>const result = {};</code>，走過每筆訂單，<code>result[o.event] = (result[o.event] || 0) + o.qty;</code>',
+  demo: `<p>範例：水果籃，依顏色加總顆數，回傳像 <code>{ 紅: 5, 黃: 1 }</code>。</p>${pre("function totalByColor(list) {\n  const result = {};                         // 先準備一個空的記帳本\n  for (const f of list) {                    // 一筆一筆走過\n    result[f.color] = (result[f.color] || 0) + f.n;\n    // 這個顏色還沒記過是 undefined，|| 0 讓它從 0 開始，再加上這筆的顆數\n  }\n  return result;                             // 全部走完才把記帳本交出去\n}")}`,
+  steps: [
+    `<p>在 TODO 下面打：<code>function totalByEvent(list) {</code>，換行。</p><p>為什麼：題目要求一個叫 totalByEvent 的函式，檢查會直接呼叫它。</p>`,
+    `<p>下一行打：<code>const result = {};</code></p><p>為什麼：先準備一個空物件當「記帳本」，等一下一筆一筆記進去。空清單時它就是答案 {}。</p>`,
+    `<p>下一行打：<code>for (const o of list) {</code></p><p>為什麼：每筆訂單都要看一遍，for...of 就是一筆一筆走過去。</p>`,
+    `<p>下一行打：<code>result[o.event] = (result[o.event] || 0) + o.qty;</code>，再打 <code>}</code> 關迴圈。</p><p>為什麼：這個活動第一次出現時 result[o.event] 是 undefined，<code>|| 0</code> 讓它從 0 開始；之後就是舊的數字加上這筆張數。</p>`,
+    `<p>最後打 <code>return result;</code> 和 <code>}</code>，按「送出檢查」。</p><p>為什麼：要把記帳本交出去。最常見的錯：忘了 <code>|| 0</code>，undefined 加數字會變成 NaN；或是 return 寫在迴圈裡面，只算到第一筆就結束。</p>`,
+  ],
   starter: "const orders = [\n  { event: '星光', qty: 2 },\n  { event: '交響', qty: 1 },\n  { event: '星光', qty: 3 },\n];\n\n// TODO: 寫 totalByEvent(orders)\n",
   solution: "const orders = [\n  { event: '星光', qty: 2 },\n  { event: '交響', qty: 1 },\n  { event: '星光', qty: 3 },\n];\n\nfunction totalByEvent(list) {\n  const result = {};\n  for (const o of list) result[o.event] = (result[o.event] || 0) + o.qty;\n  return result;\n}\n",
   tests: "check(typeof totalByEvent === 'function', '要有 totalByEvent 函式');\nif (typeof totalByEvent === 'function') {\n  const r = totalByEvent(orders);\n  check(r['星光'] === 5, '星光應該是 5（2 + 3），目前是 ' + r['星光']);\n  check(r['交響'] === 1, '交響應該是 1');\n  check(JSON.stringify(totalByEvent([])) === '{}', '沒有訂單時應該回傳空物件 {}');\n}",
@@ -122,6 +170,14 @@ const ND_P1 = js({
 const ND_P2 = js({
   brief: '專案：活動搜尋 API。<code>GET /events?keyword=星</code> 回傳標題包含關鍵字的活動；沒帶 keyword 就回傳全部。',
   hint: '關鍵字在 <code>req.query.keyword</code>。<code>events.filter((e) =&gt; e.title.includes(keyword))</code>。沒帶 keyword 時是 undefined。',
+  demo: `<p>範例：書店搜尋 <code>GET /books?keyword=魔</code>，沒帶 keyword 就回全部。</p>${pre("app.get('/books', (req, res) => {\n  const { keyword } = req.query;      // 網址 ? 後面的東西在 req.query 裡\n  res.json(\n    keyword\n      ? books.filter((b) => b.name.includes(keyword)) // 有關鍵字：留下書名包含它的\n      : books                                         // 沒關鍵字：全部回傳\n  );\n});")}`,
+  steps: [
+    `<p>找到 <code>res.json(events); // TODO...</code> 那一行，在它<b>前面</b>先打：<code>const { keyword } = req.query;</code></p><p>為什麼：/events?keyword=星 的「星」會放在 req.query.keyword，先取出來才能用。</p>`,
+    `<p>把 <code>res.json(events);</code> 那行改成開頭 <code>res.json(keyword ?</code></p><p>為什麼：沒帶 keyword 時它是 undefined，要先判斷有沒有，才決定篩選還是全部回傳。</p>`,
+    `<p>接著打：<code>events.filter((e) =&gt; e.title.includes(keyword))</code></p><p>為什麼：includes 檢查標題「有沒有包含」關鍵字，有才留下。</p>`,
+    `<p>再接著打：<code>: events);</code></p><p>為什麼：冒號後面是「沒帶 keyword」的情況，直接回傳全部活動。</p>`,
+    `<p>按「送出檢查」。</p><p>為什麼：它會試沒帶、星、交響、不存在四種。最常見的錯：沒判斷 keyword 是否存在就直接 includes(undefined)，沒帶關鍵字時結果就會錯。</p>`,
+  ],
   starter: "const express = require('express');\nconst app = express();\nconst events = [\n  { id: 1, title: '星光巡迴演唱會' },\n  { id: 2, title: '交響樂之夜' },\n  { id: 3, title: '星空露天音樂祭' },\n];\n\napp.get('/events', (req, res) => {\n  res.json(events); // TODO: 依 req.query.keyword 篩選\n});\n",
   solution: "const express = require('express');\nconst app = express();\nconst events = [\n  { id: 1, title: '星光巡迴演唱會' },\n  { id: 2, title: '交響樂之夜' },\n  { id: 3, title: '星空露天音樂祭' },\n];\n\napp.get('/events', (req, res) => {\n  const { keyword } = req.query;\n  res.json(keyword ? events.filter((e) => e.title.includes(keyword)) : events);\n});\n",
   tests: "const n = async (u) => (await app.handle('GET', u)).body.length;\ncheck((await n('/events')) === 3, '沒帶 keyword 應該回傳 3 個活動');\ncheck((await n('/events?keyword=' + encodeURIComponent('星'))) === 2, 'keyword=星 應該回傳 2 個活動');\ncheck((await n('/events?keyword=' + encodeURIComponent('交響'))) === 1, 'keyword=交響 應該回傳 1 個活動');\ncheck((await n('/events?keyword=' + encodeURIComponent('不存在'))) === 0, '沒有符合的應該回傳空陣列');",
@@ -129,6 +185,14 @@ const ND_P2 = js({
 const ND_P3 = js({
   brief: '專案：買票 API。<code>POST /seats/:id/buy</code>：座位不存在 → 404；已售出 → 409；否則把它改成已售出，回 200 和該座位。',
   hint: '先 <code>seats.find((s) =&gt; s.id === req.params.id)</code>（這次 id 是文字，不用轉數字）。找不到 404，<code>seat.sold</code> 為 true 就 409，否則 <code>seat.sold = true</code>。',
+  demo: `<p>範例：租置物櫃 <code>POST /lockers/:id/rent</code>，不存在 404，已租出 409，否則租出。</p>${pre("app.post('/lockers/:id/rent', (req, res) => {\n  const box = lockers.find((l) => l.id === req.params.id); // 用網址的 id 找櫃子\n  if (!box) return res.status(404).json({ error: '沒有這個櫃子' }); // 找不到：404\n  if (box.rented) return res.status(409).json({ error: '已租出' });  // 被租走：409\n  box.rented = true;       // 都沒問題，才改成已租出\n  res.json(box);           // 回傳改好的櫃子\n});")}`,
+  steps: [
+    `<p>在 TODO 下面打：<code>app.post('/seats/:id/buy', (req, res) =&gt; {</code>，換行。</p><p>為什麼：買票是「送出動作」，用 POST；<code>:id</code> 是要買的座位。</p>`,
+    `<p>下一行打：<code>const seat = seats.find((s) =&gt; s.id === req.params.id);</code></p><p>為什麼：先照網址上的 id 找出那個座位。這次 id 本來就是文字（'A1'），不用 Number。</p>`,
+    `<p>下一行打：<code>if (!seat) return res.status(404).json({ error: '沒有這個座位' });</code></p><p>為什麼：找不到要先擋掉，不然下一行讀 seat.sold 會當掉。</p>`,
+    `<p>下一行打：<code>if (seat.sold) return res.status(409).json({ error: '已售出' });</code></p><p>為什麼：已經賣掉的不能再賣，回 409。</p>`,
+    `<p>最後打：<code>seat.sold = true;</code>、<code>res.json(seat);</code>，再 <code>});</code>，按「送出檢查」。</p><p>為什麼：兩關都過才改成已售出。最常見的錯：把 <code>seat.sold = true</code> 放在 409 檢查前面，結果每個座位都變成已售出。</p>`,
+  ],
   starter: "const express = require('express');\nconst app = express();\nconst seats = [\n  { id: 'A1', sold: false },\n  { id: 'A2', sold: true },\n];\n\n// TODO: POST /seats/:id/buy\n",
   solution: "const express = require('express');\nconst app = express();\nconst seats = [\n  { id: 'A1', sold: false },\n  { id: 'A2', sold: true },\n];\n\napp.post('/seats/:id/buy', (req, res) => {\n  const seat = seats.find((s) => s.id === req.params.id);\n  if (!seat) return res.status(404).json({ error: '沒有這個座位' });\n  if (seat.sold) return res.status(409).json({ error: '已售出' });\n  seat.sold = true;\n  res.json(seat);\n});\n",
   tests: "check((await app.handle('POST', '/seats/Z9/buy')).status === 404, '不存在的座位應該回 404');\ncheck((await app.handle('POST', '/seats/A2/buy')).status === 409, '已售出的 A2 應該回 409');\nconst r = await app.handle('POST', '/seats/A1/buy');\ncheck(r.status === 200 && r.body && r.body.sold === true, '買 A1 應該回 200，而且座位變成已售出');\ncheck((await app.handle('POST', '/seats/A1/buy')).status === 409, '買完再買一次應該回 409');",
@@ -148,6 +212,12 @@ const P1 = {
   final: py({
     brief: '已經有 <code>price</code> 和 <code>qty</code>。請算出總價存到 <code>total</code>，再用 <code>print</code> 和 f-string 印出「總價 7600」（數字要用變數）。',
     hint: '<code>total = price * qty</code>，然後 <code>print(f\'總價 {total}\')</code>。',
+    demo: `<p>範例：算咖啡總價，做法一樣。</p>${pre("cup = 60\nn = 3\n\nsum_price = cup * n           # 單價乘數量，結果存進新變數\nprint(f'共 {sum_price} 元')   # f-string：大括號裡的變數會被換成它的值，印出「共 180 元」")}`,
+    steps: [
+      `<p>在 TODO 1 下面打：<code>total = price * qty</code></p><p>為什麼：price 乘 qty 就是總價，存進 total，等一下才能拿來印。</p>`,
+      `<p>在 TODO 2 下面打：<code>print(f'總價 {total}')</code></p><p>為什麼：字串前面的 f 讓大括號裡的 total 被換成 7600；題目要的是變數，不是自己打 7600。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會檢查 total 是 7600，而且有印出「總價 7600」。最常見的錯：print 的字串前面忘了 <code>f</code>，結果會原樣印出 {total}。</p>`,
+    ],
     starter: 'price = 3800\nqty = 2\n\n# TODO 1: 算出總價，存到 total\n\n# TODO 2: 用 print 和 f-string 印出「總價 7600」\n',
     solution: "price = 3800\nqty = 2\n\ntotal = price * qty\nprint(f'總價 {total}')\n",
     tests: "check('total' in dir() and total == 7600, '變數 total 應該是 7600')\ncheck('總價 7600' in output(), '要印出「總價 7600」')",
@@ -166,6 +236,12 @@ const P2 = {
   final: py({
     brief: '在 <code>seats</code> 清單最後加上 <code>\'A3\'</code>；在 <code>event</code> 字典新增一個欄位 <code>\'city\'</code>，值是 <code>\'台北\'</code>。',
     hint: '<code>seats.append(\'A3\')</code>；<code>event[\'city\'] = \'台北\'</code>。',
+    demo: `<p>範例：購物清單 list 加東西，字典 dict 新增欄位。</p>${pre("items = ['蘋果', '香蕉']\nperson = {'name': '小美', 'age': 20}\n\nitems.append('橘子')       # append：把東西加到清單最後面\nperson['city'] = '高雄'    # dict 用 [鍵] = 值：沒有這個鍵就新增一個")}`,
+    steps: [
+      `<p>在 TODO 1 下面打：<code>seats.append('A3')</code></p><p>為什麼：append 會把東西加到清單的最後面，原本的 A1、A2 不會變。</p>`,
+      `<p>在 TODO 2 下面打：<code>event['city'] = '台北'</code></p><p>為什麼：dict 用 [鍵] = 值 來放東西，city 本來沒有，所以會新增一個欄位。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會檢查 seats 和 event 的內容。最常見的錯：把 append 寫成 <code>seats = seats.append('A3')</code>，結果 seats 變成 None；或是括號、引號少了一個。</p>`,
+    ],
     starter: "seats = ['A1', 'A2']\nevent = {'title': '星光演唱會', 'price': 3800}\n\n# TODO 1: 把 'A3' 加到 seats 最後面\n\n# TODO 2: 在 event 新增 'city'，值是 '台北'\n",
     solution: "seats = ['A1', 'A2']\nevent = {'title': '星光演唱會', 'price': 3800}\n\nseats.append('A3')\nevent['city'] = '台北'\n",
     tests: "check(seats == ['A1', 'A2', 'A3'], \"seats 應該是 ['A1', 'A2', 'A3']，目前是 \" + str(seats))\ncheck(event.get('city') == '台北', \"event 應該有 'city': '台北'\")\ncheck(event.get('title') == '星光演唱會' and event.get('price') == 3800, '原本的 title 和 price 要保留')",
@@ -184,6 +260,14 @@ const P3 = {
   final: py({
     brief: '寫 <code>ticket_price(age)</code>：未滿 12 歲回傳 1900；65 歲以上回傳 2500；其他回傳 3800。',
     hint: '<code>if age &lt; 12: return 1900</code>，<code>elif age &gt;= 65: return 2500</code>，<code>else: return 3800</code>。',
+    demo: `<p>範例：依分數給等級：90 以上 A、60 以上 B、其他 C。</p>${pre("def grade(score):\n    if score >= 90:      # 先檢查最高的條件\n        return 'A'\n    elif score >= 60:    # 上一個不成立才會看這個\n        return 'B'\n    else:                # 前面都不成立的剩下全部\n        return 'C'\n# 注意：每個冒號後面的行要縮排 4 個空格")}`,
+    steps: [
+      `<p>打：<code>def ticket_price(age):</code>，換行。</p><p>為什麼：def 是在定義函式，結尾一定要有冒號。age 是歲數。</p>`,
+      `<p>下一行縮排 4 格打：<code>if age &lt; 12:</code>，再下一行縮排 8 格打 <code>return 1900</code></p><p>為什麼：未滿 12 歲的優惠票，符合就直接回傳。</p>`,
+      `<p>回到縮排 4 格打：<code>elif age &gt;= 65:</code>，下一行縮排 8 格 <code>return 2500</code></p><p>為什麼：65 歲以上是另一種價錢；12 剛好不是優惠，所以 12 要走到最後的 else。</p>`,
+      `<p>回到縮排 4 格打：<code>else:</code>，下一行縮排 8 格 <code>return 3800</code></p><p>為什麼：其他人都是原價。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會測 11、12、64、65 這些邊界。最常見的錯：縮排沒對齊，或是 if / elif / else 後面漏了冒號。</p>`,
+    ],
     starter: '# TODO: 寫 ticket_price(age)\n',
     solution: 'def ticket_price(age):\n    if age < 12:\n        return 1900\n    elif age >= 65:\n        return 2500\n    else:\n        return 3800\n',
     tests: "check('ticket_price' in dir(), '要有 ticket_price 這個函式')\nif 'ticket_price' in dir():\n    for a, p in [(5, 1900), (11, 1900), (12, 3800), (30, 3800), (64, 3800), (65, 2500), (80, 2500)]:\n        check(ticket_price(a) == p, f'{a} 歲應該是 {p}，目前是 {ticket_price(a)}')",
@@ -202,6 +286,14 @@ const P4 = {
   final: py({
     brief: '寫兩個函式：<code>sold_ids(seats)</code> 回傳「已售出」座位的 id 清單；<code>revenue(seats)</code> 回傳已售出座位的價格總和。（建議用推導式和 sum）',
     hint: '<code>[s[\'id\'] for s in seats if s[\'sold\']]</code>；<code>sum(s[\'price\'] for s in seats if s[\'sold\'])</code>',
+    demo: `<p>範例：書清單，找出已讀書名、加總已讀頁數。</p>${pre("books = [\n    {'name': '甲', 'read': False, 'pages': 100},\n    {'name': '乙', 'read': True, 'pages': 200},\n]\n\ndef read_names(books):\n    return [b['name'] for b in books if b['read']]\n    # 推導式：走過每本 b，只有 read 是 True 才留下，並取出 name → ['乙']\n\ndef pages_read(books):\n    return sum(b['pages'] for b in books if b['read'])\n    # 同樣的條件，sum 把留下來的頁數加總 → 200")}`,
+    steps: [
+      `<p>在 TODO 下面打：<code>def sold_ids(seats):</code>，換行。</p><p>為什麼：先把函式的外框做出來，名字要和題目一樣。</p>`,
+      `<p>下一行縮排 4 格打：<code>return [s['id'] for s in seats if s['sold']]</code></p><p>為什麼：這個推導式的意思是「走過每個座位，sold 是 True 的，就取它的 id」，結果是清單。</p>`,
+      `<p>空一行，打：<code>def revenue(seats):</code></p><p>為什麼：第二個函式負責算營收。</p>`,
+      `<p>下一行縮排 4 格打：<code>return sum(s['price'] for s in seats if s['sold'])</code></p><p>為什麼：一樣只看已售出的，sum 把它們的價格加起來。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會用都沒售出的資料再測一次。最常見的錯：條件寫成 <code>if not s['sold']</code>（挑成沒售出的），或漏了 return。</p>`,
+    ],
     starter: "seats = [\n    {'id': 'A1', 'sold': False, 'price': 3800},\n    {'id': 'A2', 'sold': True, 'price': 3800},\n    {'id': 'A3', 'sold': True, 'price': 2800},\n]\n\n# TODO: 寫 sold_ids(seats) 和 revenue(seats)\n",
     solution: "seats = [\n    {'id': 'A1', 'sold': False, 'price': 3800},\n    {'id': 'A2', 'sold': True, 'price': 3800},\n    {'id': 'A3', 'sold': True, 'price': 2800},\n]\n\ndef sold_ids(seats):\n    return [s['id'] for s in seats if s['sold']]\n\ndef revenue(seats):\n    return sum(s['price'] for s in seats if s['sold'])\n",
     tests: "check('sold_ids' in dir() and 'revenue' in dir(), '要有 sold_ids 和 revenue 兩個函式')\nif 'sold_ids' in dir():\n    check(sold_ids(seats) == ['A2', 'A3'], \"sold_ids(seats) 應該是 ['A2', 'A3']\")\n    check(sold_ids([{'id': 'B1', 'sold': False, 'price': 1}]) == [], '都沒售出時應該是空清單 []')\nif 'revenue' in dir():\n    check(revenue(seats) == 6600, 'revenue(seats) 應該是 6600')",
@@ -220,6 +312,14 @@ const P5 = {
   final: py({
     brief: '寫 <code>book(booked, seat)</code>：如果 seat 已經在 booked 裡，就 <code>raise ValueError(\'座位已被訂走\')</code>；否則把 seat 加進 booked，並回傳 <code>\'訂位成功\'</code>。',
     hint: '<code>if seat in booked: raise ValueError(\'座位已被訂走\')</code>，然後 <code>booked.add(seat)</code>、<code>return \'訂位成功\'</code>。',
+    demo: `<p>範例：加入社團，重複報名就丟錯誤。</p>${pre("def join(members, name):\n    if name in members:                 # 已經在名單裡？\n        raise ValueError('已經報名了')    # 丟出錯誤，函式在這裡就停止\n    members.add(name)                   # 沒重複，才加進名單\n    return '報名成功'\n\ntry:\n    join({'小明'}, '小明')\nexcept ValueError as e:                 # 呼叫的人用 except 接住錯誤\n    print(e)                            # 印出：已經報名了")}`,
+    steps: [
+      `<p>打：<code>def book(booked, seat):</code>，換行。</p><p>為什麼：booked 是已訂位的集合，seat 是想訂的座位，函式要用到兩個。</p>`,
+      `<p>下一行縮排 4 格打：<code>if seat in booked:</code></p><p>為什麼：先檢查座位是不是已經被訂走，in 就是「有沒有在裡面」。</p>`,
+      `<p>下一行縮排 8 格打：<code>raise ValueError('座位已被訂走')</code></p><p>為什麼：raise 會丟出錯誤並立刻停止，後面的訂位就不會執行。</p>`,
+      `<p>回到縮排 4 格打：<code>booked.add(seat)</code>，下一行 <code>return '訂位成功'</code></p><p>為什麼：沒被訂走才真的加進去，並回傳成功訊息。</p>`,
+      `<p>按「送出檢查」。</p><p>為什麼：它會連訂 A1 兩次，第二次要有錯誤。最常見的錯：<code>booked.add(seat)</code> 寫在 if 前面，結果永遠都是「已被訂走」。</p>`,
+    ],
     starter: '# TODO: 寫 book(booked, seat)\n',
     solution: "def book(booked, seat):\n    if seat in booked:\n        raise ValueError('座位已被訂走')\n    booked.add(seat)\n    return '訂位成功'\n",
     tests: "check('book' in dir(), '要有 book 這個函式')\nif 'book' in dir():\n    b = {'A2'}\n    check(book(b, 'A1') == '訂位成功', \"訂 A1 應該回傳 '訂位成功'\")\n    check('A1' in b, '訂位成功後，A1 要被加進 booked')\n    try:\n        book(b, 'A1')\n        check(False, 'A1 已經被訂走，再訂應該要 raise ValueError')\n    except ValueError as e:\n        check('已被訂走' in str(e), \"錯誤訊息要是 '座位已被訂走'\")",
@@ -242,6 +342,13 @@ const PY_QUIZ2 = [
 const PY_P1 = py({
   brief: '專案：平均分數。寫 <code>average(nums)</code> 回傳數字清單的平均值；清單是空的就回傳 0。',
   hint: '<code>if not nums: return 0</code>，否則 <code>sum(nums) / len(nums)</code>。',
+  demo: `<p>範例：找清單裡最大的數字，空清單回傳 0。</p>${pre("def biggest(nums):\n    if not nums:        # 空清單 not nums 會是 True\n        return 0        # 先擋掉，因為 max([]) 會出錯\n    return max(nums)    # 一般情況：用內建 max 找最大的")}`,
+  steps: [
+    `<p>打：<code>def average(nums):</code>，換行。</p><p>為什麼：先做出函式外框，名字要和題目一樣。</p>`,
+    `<p>下一行縮排 4 格打：<code>if not nums:</code>，再下一行縮排 8 格 <code>return 0</code></p><p>為什麼：空清單沒有東西可以平均，題目說要回傳 0。</p>`,
+    `<p>回到縮排 4 格打：<code>return sum(nums) / len(nums)</code></p><p>為什麼：平均 = 總和除以個數。sum 算總和，len 算個數。</p>`,
+    `<p>按「送出檢查」。</p><p>為什麼：它會測 [4, 6]、[1, 2, 3, 4] 和空清單。最常見的錯：忘了先處理空清單，len 是 0 會出現「除以零」的錯誤。</p>`,
+  ],
   starter: '# TODO: 寫 average(nums)\n',
   solution: 'def average(nums):\n    if not nums:\n        return 0\n    return sum(nums) / len(nums)\n',
   tests: "check('average' in dir(), '要有 average 這個函式')\nif 'average' in dir():\n    check(average([4, 6]) == 5, 'average([4, 6]) 應該是 5')\n    check(average([1, 2, 3, 4]) == 2.5, 'average([1, 2, 3, 4]) 應該是 2.5')\n    check(average([]) == 0, '空清單應該回傳 0（不能出錯）')",
@@ -249,6 +356,14 @@ const PY_P1 = py({
 const PY_P2 = py({
   brief: '專案：訂單分組。寫 <code>group_by_event(orders)</code>，把訂單依活動加總張數，回傳像 <code>{\'星光\': 5, \'交響\': 1}</code> 的 dict。',
   hint: '<code>result = {}</code>，走過每筆訂單：<code>result[o[\'event\']] = result.get(o[\'event\'], 0) + o[\'qty\']</code>。',
+  demo: `<p>範例：水果籃，依顏色加總顆數。</p>${pre("def count_by_color(fruits):\n    result = {}                                       # 空的記帳本\n    for f in fruits:                                  # 一筆一筆走過\n        result[f['color']] = result.get(f['color'], 0) + f['n']\n        # get(鍵, 0)：沒記過就當 0，再加上這筆的顆數\n    return result                                     # 走完再交出去")}`,
+  steps: [
+    `<p>在 TODO 下面打：<code>def group_by_event(orders):</code>，換行。</p><p>為什麼：先做函式外框。</p>`,
+    `<p>下一行縮排 4 格打：<code>result = {}</code></p><p>為什麼：準備空的 dict 當記帳本，空清單時它就是答案。</p>`,
+    `<p>下一行縮排 4 格打：<code>for o in orders:</code></p><p>為什麼：每筆訂單都要看，一筆一筆走過。</p>`,
+    `<p>下一行縮排 8 格打：<code>result[o['event']] = result.get(o['event'], 0) + o['qty']</code></p><p>為什麼：get 第二個參數 0 的意思是「還沒記過就當 0」，再加上這筆的張數。直接用 result[...] 讀新活動會出現 KeyError。</p>`,
+    `<p>回到縮排 4 格打：<code>return result</code>，按「送出檢查」。</p><p>為什麼：要把結果交出去。最常見的錯：return 縮排太多，跑進了 for 裡面，結果只算一筆就結束。</p>`,
+  ],
   starter: "orders = [\n    {'event': '星光', 'qty': 2},\n    {'event': '交響', 'qty': 1},\n    {'event': '星光', 'qty': 3},\n]\n\n# TODO: 寫 group_by_event(orders)\n",
   solution: "orders = [\n    {'event': '星光', 'qty': 2},\n    {'event': '交響', 'qty': 1},\n    {'event': '星光', 'qty': 3},\n]\n\ndef group_by_event(orders):\n    result = {}\n    for o in orders:\n        result[o['event']] = result.get(o['event'], 0) + o['qty']\n    return result\n",
   tests: "check('group_by_event' in dir(), '要有 group_by_event 這個函式')\nif 'group_by_event' in dir():\n    check(group_by_event(orders) == {'星光': 5, '交響': 1}, \"應該是 {'星光': 5, '交響': 1}，目前是 \" + str(group_by_event(orders)))\n    check(group_by_event([]) == {}, '空清單應該回傳 {}')",
@@ -256,6 +371,13 @@ const PY_P2 = py({
 const PY_P3 = py({
   brief: '專案：解析訂單文字。寫 <code>parse_order(text)</code>：<code>\'星光,2\'</code> 變成 <code>{\'event\': \'星光\', \'qty\': 2}</code>（qty 是數字）；如果張數不是數字，要 <code>raise ValueError</code>。',
   hint: '<code>name, n = text.split(\',\')</code> 把文字切開；<code>int(n)</code> 轉數字，不是數字它自己就會 raise ValueError。',
+  demo: `<p>範例：把 <code>'蘋果,3'</code> 變成 <code>{'item': '蘋果', 'n': 3}</code>，不是數字就出錯。</p>${pre("def parse_item(text):\n    name, n = text.split(',')     # 用逗號切成兩段，分別放進 name 和 n\n    return {'item': name, 'n': int(n)}\n    # int(n) 把文字 '3' 變數字 3；如果是 '很多'，int 自己就會 raise ValueError")}`,
+  steps: [
+    `<p>打：<code>def parse_order(text):</code>，換行。</p><p>為什麼：先做函式外框，text 是像 '星光,2' 的文字。</p>`,
+    `<p>下一行縮排 4 格打：<code>name, n = text.split(',')</code></p><p>為什麼：split 用逗號把文字切成兩段，「星光」放 name，「2」放 n。此時 n 還是文字。</p>`,
+    `<p>下一行縮排 4 格打：<code>return {'event': name, 'qty': int(n)}</code></p><p>為什麼：int(n) 把文字變成數字；如果不是數字（像「很多」），int 會自己丟 ValueError，正好是題目要的，不用另外寫。</p>`,
+    `<p>按「送出檢查」。</p><p>為什麼：它會測 '星光,2'、'交響,10' 和 '星光,很多'。最常見的錯：忘了 int()，qty 會變成文字 '2'，和數字 2 不相等。</p>`,
+  ],
   starter: '# TODO: 寫 parse_order(text)\n',
   solution: "def parse_order(text):\n    name, n = text.split(',')\n    return {'event': name, 'qty': int(n)}\n",
   tests: "check('parse_order' in dir(), '要有 parse_order 這個函式')\nif 'parse_order' in dir():\n    check(parse_order('星光,2') == {'event': '星光', 'qty': 2}, \"'星光,2' 應該變成 {'event': '星光', 'qty': 2}\")\n    check(parse_order('交響,10')['qty'] == 10, 'qty 要是數字 10，不是文字')\n    try:\n        parse_order('星光,很多')\n        check(False, \"張數不是數字時要 raise ValueError\")\n    except ValueError:\n        pass",

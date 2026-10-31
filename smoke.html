@@ -46,6 +46,7 @@ while ((px()[0] !== 12 || px()[1] !== 4) && guard++ < 60) { if (px()[1] !== 5 &&
 ok(px()[0] === 12 && px()[1] === 4, '走到教室門口 ' + px());
 await key('e');
 ok(q('h1')?.textContent.includes('教室'), '進入教室');
+await click(btnText('進入')); // 先選課（第一張是 TypeScript）
 await click(btnText('上課'));
 ok(q('h2')?.textContent.includes('第 1 堂'), '開始第一堂 TS 課');
 // 小步驟：答對才能往下
