@@ -37,6 +37,7 @@ document.addEventListener('keydown', (e) => {
   else if ([' ', 'enter', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); live.act(); }
 });
 
+const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
 let activeView = null, token = 0; // 3D 場景；離開辦公室時要釋放
 export const leaveOffice = () => { live = null; token++; activeView?.dispose(); activeView = null; };
 
@@ -51,11 +52,22 @@ export function makeOffice({ S, screen, apply, go, store }) {
     const want3d = S.view3d !== false && new URLSearchParams(location.search).get('view') !== '2d';
     const marksMap = {};
     OBJ.forEach((o) => { const m = pending.some((id) => COURSE_EVENTS[id].npc === o.id) ? '💬' : GOAL_OBJ[S.goal] === o.id ? '❗' : ''; if (m) marksMap[o.id] = m; });
-    screen(`<h1>🏢 辦公室</h1><p class="goal">🎯 ${GOAL_TEXT[S.goal] || '自由活動'}　<small>方向鍵／WASD 移動，靠近人物按空白鍵互動；📋 任務看板可以體驗「專案衝刺」</small> <button class="vt" data-a="5">切換 ${want3d ? '2D' : '3D'}</button></p>
+    screen(`<h1>🏢 辦公室</h1><p class="goal">🎯 ${GOAL_TEXT[S.goal] || '自由活動'}　<small>${touch ? '按下方箭頭移動（可按住連走），靠近人物按「互動」' : '方向鍵／WASD 移動，靠近人物按空白鍵互動'}；📋 任務看板可以體驗「專案衝刺」</small> <button class="vt" data-a="5">切換 ${want3d ? '2D' : '3D'}</button></p>
       <div class="map ${want3d ? 'map3d' : ''}" id="m3" style="--w:${W};--h:${H}"><div id="ovl" hidden></div></div>
       <p id="ptext" class="prompt">&nbsp;</p>
       <div class="dpad"><button data-a="0">▲</button><div><button data-a="2">◀</button><button data-a="4" class="primary">互動</button><button data-a="3">▶</button></div><button data-a="1">▼</button></div>`,
     [() => live.move(0, -1), () => live.move(0, 1), () => live.move(-1, 0), () => live.move(1, 0), () => live.act(), () => { S.view3d = !want3d; go('office'); }]);
+
+    // 手機：按住方向鍵連續移動（鍵盤操作的 click 仍照舊）
+    document.querySelectorAll('.dpad button').forEach((b) => {
+      const i = +b.dataset.a;
+      if (i > 3) return;
+      let timer = 0;
+      const stop = () => { clearInterval(timer); timer = 0; };
+      b.addEventListener('pointerdown', () => { if (timer) return; live?.move(...[[0, -1], [0, 1], [-1, 0], [1, 0]][i]); timer = setInterval(() => live?.move(...[[0, -1], [0, 1], [-1, 0], [1, 0]][i]), 160); });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => b.addEventListener(ev, stop));
+      b.addEventListener('click', (e) => { if (e.detail > 0) e.stopPropagation(); });
+    });
 
     // 畫面：優先 3D，失敗（沒有 WebGL 等）就退回 2D 地圖
     let view = null;
@@ -74,7 +86,7 @@ export function makeOffice({ S, screen, apply, go, store }) {
     const near = () => OBJ.find((o) => Math.max(Math.abs(o.x - S.pos.x), Math.abs(o.y - S.pos.y)) <= 1);
     const update = () => {
       const o = near();
-      ptext.innerHTML = o ? `按 <kbd>空白鍵</kbd>：${o.id === 'class' ? '進教室上課' : o.id === 'board' ? '看任務看板，體驗真實的一天' : `和 ${nm(o)} 互動`}` : '&nbsp;';
+      ptext.innerHTML = o ? `按 ${touch ? '「互動」' : '<kbd>空白鍵</kbd>'}：${o.id === 'class' ? '進教室上課' : o.id === 'board' ? '看任務看板，體驗真實的一天' : `和 ${nm(o)} 互動`}` : '&nbsp;';
     };
     const close = () => { ovl.hidden = true; ovl.innerHTML = ''; };
     const dialog = (html, buttons) => {
