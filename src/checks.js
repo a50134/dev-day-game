@@ -86,11 +86,11 @@ const checks = {
   },
 };
 
-export async function runCheck(id, iframe, tokens) {
+export async function runCheck(id, iframe, tokens, level) {
   await wait(600); // 等 React 掛載與假 fetch
   if (iframe.contentWindow.__error) return [`程式錯誤：${iframe.contentWindow.__error}`];
   try {
-    return await checks[id](makeCtx(iframe, tokens));
+    return await (level?.check || checks[id])(makeCtx(iframe, tokens));
   } catch (e) {
     return [`檢查時出錯（通常是缺少必要元素）：${e.message}`];
   }

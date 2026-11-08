@@ -1,5 +1,7 @@
-import { COMPANIES, COLORS, FONTS, PAGES, REVIEWS, EVENTS, RANKS } from './scenes.js';
-import { LEVELS } from './levels.js';
+import { COMPANIES, COLORS, FONTS, RANKS } from './scenes.js';
+import { DATA } from './companies.js';
+import { exercise } from './practice.js';
+import { PY } from './companies-py.js';
 import { mount } from './sandbox.js';
 import { runCheck } from './checks.js';
 import { specHtml, twHtml, bsHtml } from './spec.js';
@@ -20,7 +22,7 @@ const S = {}; // 單一狀態物件，重新開始時原地覆蓋（其他模組
 let acts = [];
 const reset = () => { for (const k of Object.keys(S)) delete S[k]; Object.assign(S, fresh()); };
 const fresh = () => ({
-  phase: 'company',
+  phase: 'company', company: 'ticket', role: 'front', lang: 'js',
   stats: { progress: 0, quality: 50, stress: 30, team: 50 },
   tokens: { primary: COLORS[0].value, font: FONTS[0].value, radius: 6 },
   tech: { ts: false, tailwind: false },
@@ -67,22 +69,62 @@ const radios = (name, items) => items.map((x, i) =>
 const picked = (name) => document.querySelector(`input[name=${name}]:checked`).value;
 
 const toOffice = (goal) => { S.goal = goal; go('office'); };
-const nextLevel = () => (++S.li < S.levels.length ? render() : (S.events = [...EVENTS].sort(() => Math.random() - 0.5).slice(0, 2), go('event')));
+const CO = () => DATA[S.company] || DATA.ticket;
+const ROLES = { front: '前端', back: '後端', full: '全端' };
+const pickEvents = () => { // 前端：畫面類事件；後端：API 類事件；全端：各一個
+  const mix = (a, n) => [...a].sort(() => Math.random() - 0.5).slice(0, n);
+  const c = CO();
+  return S.role === 'back' ? mix(c.backEvents, 2) : S.role === 'full' ? [...mix(c.events, 1), ...mix(c.backEvents, 1)].sort(() => Math.random() - 0.5) : mix(c.events, 2);
+};
+const nextLevel = () => (++S.li < S.levels.length ? render() : (S.events = pickEvents(), go('event')));
+
+// 後端關：寫 Node.js 函式，真的執行並用測試檢查（exercise 的 code 類型）
+function backLevel(lv) {
+  const py = S.lang === 'py' && PY[lv.id], ex = py || lv.ex;
+  const first = !S.done.includes(lv.id);
+  const nxt = () => btn(S.li + 1 < S.levels.length ? '下一個任務' : '準備上線', 1, 'primary');
+  const ticket = py ? (lv.ticket.match(/^【[^】]+】/)?.[0] || '') + ex.brief : lv.ticket; // Python 版的函式名稱不同，工單改用 Python 版的說明
+  screen(`<div class="split"><div class="side"><h2>${S.li + 1}/${S.levels.length} ⚙️ ${lv.title}${py ? '（Python）' : ''}</h2><p class="ticket">${ticket}</p>
+    <details open><summary>提示</summary><div class="hint">${py ? ex.hint : lv.hint}</div></details>
+    ${ex.demo ? '<details class="hsteps demo"><summary><b>👀 先看示範（類似的小例子）</b></summary><div>' + ex.demo + '</div></details>' : ''}
+    ${ex.steps ? '<div class="hsteps"><b>🪜 照著一步一步做</b>' + ex.steps.map((x, i) => `<details><summary>步驟 ${i + 1}</summary><div>${x}</div></details>`).join('') + '</div>' : ''}
+    <div id="nx">${first ? '' : '<p class="ok">✅ 這個任務已通過</p>' + nxt()}</div></div>
+    <div class="work1"><div id="exbox" class="exbox"></div></div></div>`,
+    [null, () => nextLevel()]);
+  exercise(exbox, ex, { key: 'ex-' + lv.id + (py ? '-py' : ''), onPass: () => {
+    if (first) { S.done.push(lv.id); apply({ progress: Math.floor(70 / S.levels.length), quality: 6 }); }
+    nx.innerHTML = '<p class="ok">✅ QA 通過！</p>' + nxt();
+  } });
+}
 
 const phases = {
   company() {
-    screen(`<h1>前端工程師的一天</h1>${say('mate', '新人你好！先選一家公司，今天你就是這裡的前端工程師～想先熱身的話，右上角有 TypeScript 練習場！', 'happy')}` +
-      COMPANIES.map((c, i) => `<div class="card ${c.open ? '' : 'lock'}"><h3>${c.name}</h3><p>${c.desc}</p>${c.open ? btn('進入公司', i) : ''}</div>`).join(''),
-      COMPANIES.map((c) => () => c.open && toOffice('req')));
+    screen(`<h1>工程師的一天</h1>${say('mate', '新人你好！先選一家公司，再選你的職位（前端、後端、全端）～想先熱身的話，右上角有 TypeScript 練習場，也可以去教室上課！', 'happy')}` +
+      COMPANIES.map((c, i) => `<div class="card"><h3>${c.name}</h3><p>${c.desc}</p>${btn('進入公司', i)}</div>`).join(''),
+      COMPANIES.map((c) => () => { S.company = c.id; go('role'); }));
+  },
+  role() {
+    screen(`<h2>${COMPANIES.find((x) => x.id === S.company).name}　選你的職位</h2>${say('lead', '今天你想當哪一種工程師？', 'happy')}
+      <div class="card"><h3>🎨 前端工程師</h3><p>把設計稿做成真的畫面：寫 React、接 API、驗證表單。三個頁面。</p>${btn('我當前端', 0)}</div>
+      <div class="card"><h3>⚙️ 後端工程師</h3><p>寫 API 的邏輯：篩選排序、檢查資料、算錢、不能出錯。三個 Node.js 小題（真的會執行檢查）。</p>${btn('我當後端', 1)}</div>
+      <div class="card"><h3>🧩 全端工程師</h3><p>先寫後端 API，再把畫面接上去。六個任務，最完整。</p>${btn('我當全端', 2)}</div>
+      <h4>後端要用哪個語言寫？（前端不用選）</h4><label><input type="radio" name="lang" value="js" checked> Node.js（JavaScript，跟前端同一種語言）</label><label><input type="radio" name="lang" value="py"> Python（第一次要下載約 10～30 秒）</label>${btn('← 換一家公司', 3)}`,
+      [() => pickRole('front'), () => pickRole('back'), () => pickRole('full'), () => go('company')]);
+    function pickRole(r) { S.role = r; S.lang = picked('lang'); toOffice('req'); }
   },
   req() {
-    screen(`<h2>早上 9:30 需求會議</h2>${say('pm', '這個 sprint 我們要做訂票網站，你覺得要先做哪些頁面？（至少選一個，做越多越花時間，但進度越高）', 'happy')}` +
-      PAGES.map((p) => `<label><input type="checkbox" value="${p.id}" checked> ${p.name}</label>`).join('') + btn('決定了', 0, 'primary'),
+    const c = CO(), side = (p) => S.role === 'full' || p.side === (S.role === 'back' ? 'back' : 'front');
+    const group = (title, list) => (list.length ? `<h4>${title}</h4>` + list.map((p) => `<label><input type="checkbox" value="${p.id}" checked> ${p.name}</label>`).join('') : '');
+    const pages = c.pages.filter(side);
+    screen(`<h2>早上 9:30 需求會議</h2>${say('pm', `這個 sprint 我們要做${c.product}，你是${ROLES[S.role]}工程師，你覺得要先做哪些？（至少選一個，做越多越花時間，但進度越高）`, 'happy')}` +
+      group('⚙️ 後端 API', pages.filter((p) => p.side === 'back')) + group('🎨 前端頁面', pages.filter((p) => p.side === 'front')) + btn('決定了', 0, 'primary'),
       [() => {
-        S.levels = PAGES.filter((p) => document.querySelector(`input[value=${p.id}]`).checked).map((p) => p.id);
-        if (!S.levels.length) return alert('至少選一個頁面');
+        // 順序：後端在前、前端在後（全端先寫 API，再接畫面）
+        S.levels = [...pages.filter((p) => p.side === 'back'), ...pages.filter((p) => p.side === 'front')].filter((p) => document.querySelector(`input[value="${p.id}"]`).checked).map((p) => p.id);
+        if (!S.levels.length) return alert('至少選一個');
         apply({ stress: S.levels.length * 5 });
-        toOffice('design');
+        const needUI = S.levels.some((id) => c.levels[id].kind !== 'api'); // 只做後端就不用跟設計師討論
+        toOffice(needUI ? 'design' : 'level');
       }]);
   },
   design() {
@@ -94,10 +136,10 @@ const phases = {
       }]);
   },
   review() {
-    const r = REVIEWS[S.review];
-    const t = S.tokens;
-    const mock = `<div class="mock" style="font-family:${t.font}"><b>熱門活動・設計稿 ${S.review + 1}</b><p>星光巡迴演唱會 · NT$ 3800</p><span style="background:${t.primary};border-radius:${t.radius}px">立即購票</span></div>`;
-    choice(mock + say(r.who, r.text, r.mood), r.options, () => (++S.review < REVIEWS.length ? render() : toOffice('tech')));
+    const REV = CO().reviews, r = REV[S.review];
+    const t = S.tokens, m = CO().mock;
+    const mock = `<div class="mock" style="font-family:${t.font}"><b>${m.head}・設計稿 ${S.review + 1}</b><p>${m.line}</p><span style="background:${t.primary};border-radius:${t.radius}px">${m.btn}</span></div>`;
+    choice(mock + say(r.who, r.text, r.mood), r.options, () => (++S.review < REV.length ? render() : toOffice('tech')));
   },
   tech() {
     screen(`<h2>技術選擇</h2>${say('lead', '框架是 React。語言和樣式你想怎麼做？', 'happy')}
@@ -109,10 +151,12 @@ const phases = {
       [() => { const fw = picked('fw'); S.tech = { ts: ts.checked, tailwind: fw === 'tailwind', bootstrap: fw === 'bootstrap' }; toOffice('level'); }]);
   },
   level() {
-    const lv = LEVELS.find((l) => l.id === S.levels[S.li]);
+    const lv = CO().levels[S.levels[S.li]];
+    if (lv.kind === 'api') return backLevel(lv);
+    const fix = CO().fixtures;
     let tries = 0, peeked = false, passed = S.done.includes(lv.id), jsx, cssEd;
     const next = () => btn(S.li + 1 < S.levels.length ? '下一頁' : '準備上線', 3, 'primary');
-    screen(`<div class="split"><div class="side"><h2>${S.li + 1}/${S.levels.length} ${lv.title}</h2><p class="ticket">${lv.ticket}</p>
+    screen(`<div class="split"><div class="side"><h2>${S.li + 1}/${S.levels.length} ${lv.title}</h2><p class="ticket">${S.role === 'full' ? '🧩 全端：這一頁要接的資料，就是你剛才寫的後端。<br>' : ''}${lv.ticket}</p>
       <details><summary>提示</summary><div class="hint">${lv.hint}</div></details>
       <p class="tip">💡 打字會跳出建議，<kbd>Tab</kbd> 接受並跳到下一格；程式自動存檔。</p>
       ${btn('提交給 QA', 0, 'primary')} ${btn('看參考解答（品質 -8）', 1)} ${btn('重置', 2)}<div id="qa"></div></div>
@@ -123,7 +167,7 @@ const phases = {
       async () => {
         if (!jsx) return;
         tries++;
-        const fails = await runCheck(lv.id, pv, S.tokens);
+        const fails = await runCheck(lv.id, pv, S.tokens, lv);
         qa.innerHTML = fails.length
           ? `<ul class="fail">${fails.map((f) => `<li>${f.replace(/</g, '&lt;')}</li>`).join('')}</ul>`
           : `<p class="ok">✅ QA 通過！</p>${next()}`;
@@ -143,7 +187,7 @@ const phases = {
       },
     ]);
     const key = 'code-' + lv.id;
-    const preview = () => mount(pv, { code: jsx.value, css: cssEd.value, tech: S.tech });
+    const preview = () => mount(pv, { code: jsx.value, css: cssEd.value, tech: S.tech, fixtures: fix });
     let timer;
     const changed = () => { // 停手 0.7 秒後：存檔 + 更新預覽
       clearTimeout(timer);
@@ -159,7 +203,7 @@ const phases = {
     twpane.innerHTML = S.tech.bootstrap ? bsHtml(lv) : twHtml(lv);
     if (passed) qa.innerHTML = `<p class="ok">✅ 這一頁已通過</p>${next()}`;
     // 設計稿 = 參考解答的畫面（程式碼不顯示）
-    mount(ds, { code: lv.solutionJsx(S.tokens), css: lv.solutionCss(S.tokens), tech: { ts: false, tailwind: false } });
+    mount(ds, { code: lv.solutionJsx(S.tokens), css: lv.solutionCss(S.tokens), tech: { ts: false, tailwind: false }, fixtures: fix });
     (async () => {
       jsx = await createEditor(edbox, { lang: 'jsx', onInput: changed });
       cssEd = await createEditor(edbox, { lang: 'css', onInput: changed });
@@ -206,7 +250,8 @@ const phases = {
   end() {
     const s = S.stats;
     const score = s.progress * 0.4 + s.quality * 0.3 + s.team * 0.2 + (100 - s.stress) * 0.1;
-    const [, title, text] = RANKS.find(([min]) => score >= min);
+    const [, title0, text0] = RANKS.find(([min]) => score >= min);
+    const title = title0.replace('前端', ROLES[S.role]), text = text0.replace('訂票網站', CO().product);
     screen(`<h1>下班了 🌙</h1>${say('me', `${title}　${text}`, score >= 65 ? 'happy' : score >= 40 ? 'normal' : 'worried')}<p>總分 ${Math.round(score)}</p>${btn('再玩一次', 0, 'primary')}`, [() => { store.clear(); reset(); render(); }]);
   },
 };

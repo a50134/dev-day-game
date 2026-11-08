@@ -84,6 +84,7 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
         if (!st.widget?.gate) quickCheck(qc, st.check, unlock);
       } else {
         const ex = l.final;
+        if (!ex) { if (!done(l.id)) { mark(l.id); apply({ quality: 2, stress: -3 }); } return exit(); }
         screen(`<h2>${l.title}</h2><div class="dots">${dots}</div><div class="split"><div class="side">${say('teacher', ex.brief + '<br><small>' + ex.hint + '</small>' + stepsBox(ex), 'happy')}<div id="nx"></div>${btn('← 回教室', 1)}</div><div class="work1"><div id="exbox" class="exbox"></div></div></div>`, [
           () => { exit(); }, exit]);
         const first = !done(l.id);

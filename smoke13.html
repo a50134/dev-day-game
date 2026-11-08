@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke13</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 2：在真實教室介面完整走一遍「第〇章」的課（無總練習的課要能完成、回教室變 ✅，並解鎖章節測驗）
+import { COURSES } from './src/courses.js';
+const log = [];
+const show = () => (out.textContent = log.join('\n') + (log.some((l) => /FAIL|ERROR/.test(l)) ? '' : '\nALL OK'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe');
+f.style.cssText = 'width:1200px;height:900px';
+document.body.append(f);
+const open = async (save) => {
+  localStorage.clear();
+  if (save) localStorage.setItem('ddg-save', JSON.stringify(save));
+  f.src = 'index.html?view=2d&r=' + Math.random();
+  await new Promise((r) => (f.onload = r));
+  await wait(700);
+};
+const d = () => f.contentDocument, w = () => f.contentWindow;
+const q = (s) => d().querySelector(s), qa = (s) => [...d().querySelectorAll(s)];
+const click = async (el) => { el.click(); await wait(150); };
+const key = async (k) => { d().body.dispatchEvent(new (w().KeyboardEvent)('keydown', { key: k, bubbles: true })); await wait(50); };
+const btnText = (t) => qa('button').find((b) => b.textContent.includes(t));
+
+import { INTRO } from './src/courses-intro.js';
+const sv = { phase: 'classroom', back: 'office', prog: {}, room: 'tw', pos: { x: 5, y: 5 }, goal: 'req' };
+await open(sv);
+ok(q('h1')?.textContent.includes('教室'), '載入存檔進教室');
+const L = INTRO.tw.chapter.lessons;
+for (const l of L) {
+  const row = () => qa('.row').find((r) => r.textContent.includes(l.title));
+  await click(row().querySelector('button'));
+  ok(q('h2')?.textContent.includes(l.title), l.id + '：進入課程');
+  for (const st of l.steps) {
+    if (st.check) { const c = st.check; await click(qa('.qc .opt')[c.answer]); }
+    else {
+      const w = st.widget;
+      for (const c of w.need || []) { q(`input[data-c="${c}"]`).click(); await wait(200); }
+      await wait(300);
+    }
+    ok(btnText('下一步') || btnText('去做總練習'), l.id + '：答對／做對後出現下一步');
+    await click(btnText('下一步') || btnText('去做總練習'));
+  }
+  ok(q('h1')?.textContent.includes('教室'), l.id + '：做完回到教室');
+  ok(row().textContent.includes('✅'), l.id + '：標示完成');
+}
+ok(btnText('開始測驗') != null, '4 堂都完成後，章節測驗解鎖');
+</script>

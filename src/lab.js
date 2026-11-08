@@ -121,7 +121,7 @@ function blocks(box, spec, ok) {
       const bad = picked.findIndex((v, n) => v !== n);
       if (bad >= 0) { draw(`<p class="fail">❌ 第 ${bad + 1} 行放錯了。提示：這一行應該是「${spec.lines[bad].what}」</p>`); return; }
       passed = true; draw('<p class="ok">✅ 順序正確！下面是這支程式真的執行的結果：</p>');
-      const r = await runSnippet(picked.map((i) => spec.lines[i].code).join('\n'), SCENES.ok);
+      const r = spec.output != null ? { logs: [spec.output], error: null } : await runSnippet(picked.map((i) => spec.lines[i].code).join('\n'), SCENES.ok);
       box.querySelector('.rres').innerHTML = outHtml(r);
       ok?.();
     };
@@ -147,13 +147,48 @@ function blanks(box, spec, ok) {
       passed = true;
       draw(`<p class="ok">✅ 全對！</p><ul>${spec.blanks.map((b, i) => `<li><code>${esc(b.options[b.answer])}</code>：${b.why}</li>`).join('')}</ul><p>這支程式真的執行的結果：</p>`);
       const code = parts.map((p, i) => (i % 2 === 0 ? p : spec.blanks[p - 1].options[spec.blanks[p - 1].answer])).join('');
-      box.querySelector('.rres').innerHTML = outHtml(await runSnippet(code, SCENES.ok));
+      box.querySelector('.rres').innerHTML = outHtml(spec.output != null ? { logs: [spec.output], error: null } : await runSnippet(code, SCENES.ok));
       ok?.();
     };
   };
   draw();
 }
 
+/* ---------- explore：點一下看結果（不執行程式，結果是事先寫好的） ---------- */
+function explore(box, spec, ok) {
+  const seen = new Set();
+  let cur = -1;
+  const draw = () => {
+    box.innerHTML = `<div class="lab"><h4>👀 ${spec.title}</h4><p class="muted">${spec.intro || '點下面每一個按鈕，看看會發生什麼事。'}</p>
+      <div class="vbtns">${spec.items.map((it, i) => `<button data-i="${i}" class="${seen.has(i) ? 'seen' : ''}">${seen.has(i) ? '✓ ' : ''}${it.label}</button>`).join('')}</div>
+      <div class="vres">${cur < 0 ? '' : `<div class="labout"><pre>${esc(spec.items[cur].code)}</pre><p><b>▶ 結果：</b></p><div>${spec.items[cur].result}</div><p>👉 ${spec.items[cur].note}</p></div>`}</div>
+      ${spec.gate ? `<p class="muted">${seen.size >= spec.items.length ? '✅ 全部看完了，可以按下一步。' : `還有 ${spec.items.length - seen.size} 個沒點過喔～`}</p>` : ''}</div>`;
+    box.querySelectorAll('.vbtns button').forEach((b) => (b.onclick = () => { cur = +b.dataset.i; const first = seen.size < spec.items.length; seen.add(cur); draw(); if (spec.gate && first && seen.size >= spec.items.length) ok?.(); }));
+  };
+  draw();
+}
+
+/* ---------- twlab：勾選 Tailwind class，右邊即時看畫面 ---------- */
+function twlab(box, spec, ok) {
+  const on = new Set();
+  let done = false;
+  const draw = () => {
+    const html = spec.html.split('{C}').join([...on].join(' '));
+    box.innerHTML = `<div class="lab"><h4>🎨 ${spec.title}</h4><p class="muted">${spec.intro || '勾選下面的 class，看看畫面怎麼變。'}</p>
+      ${spec.classes.map((c, i) => `<div class="labline ${on.has(c.c) ? '' : 'off'}"><label><input type="checkbox" data-c="${c.c}" ${on.has(c.c) ? 'checked' : ''}> <code>${c.c}</code></label><div class="why">${c.what}</div></div>`).join('')}
+      <p><b>目前的標籤：</b></p><pre>${esc(spec.html.split('{C}').join(`${[...on].join(' ')}`))}</pre>
+      <p><b>畫面長這樣：</b></p><iframe class="twf" style="width:100%;height:${spec.h || 150}px;border:1px solid #888;border-radius:8px;background:#fff"></iframe>
+      ${spec.need ? `<p class="${done ? 'ok' : 'muted'}">${done ? '✅ 完成了！可以按下一步。' : `任務：${spec.task}`}</p>` : ''}</div>`;
+    box.querySelector('.twf').srcdoc = `<!doctype html><script src="https://cdn.tailwindcss.com/3.4.16"></script><body class="p-4">${html}</body>`;
+    box.querySelectorAll('input[data-c]').forEach((c) => (c.onchange = () => {
+      c.checked ? on.add(c.dataset.c) : on.delete(c.dataset.c);
+      const was = done; done = !!spec.need && spec.need.every((n) => on.has(n));
+      draw(); if (done && !was) ok?.();
+    }));
+  };
+  draw();
+}
+
 export function mountWidget(box, w, ok) {
-  ({ viewer, lab, blocks, blanks })[w.type](box, w, ok);
+  ({ viewer, lab, blocks, blanks, explore, twlab })[w.type](box, w, ok);
 }

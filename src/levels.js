@@ -1,10 +1,10 @@
 // 每關：PM 工單 + 設計規格 + 起始 JSX/CSS + 參考解答。
 // 設計稿畫面 = 參考解答；規格頁(spec.js)的數字與解答 CSS 對應同一份設計變數 t。
-const base = (t) => `:root { --primary: ${t.primary}; --radius: ${t.radius}px; }
+export const base = (t) => `:root { --primary: ${t.primary}; --radius: ${t.radius}px; }
 body { font-family: ${t.font}; margin: 0; padding: 24px; color: #222; font-size: 16px; }
 h1 { font-size: 28px; font-weight: 700; margin: 0 0 16px; }
 `;
-const jsxHead = `const { useState, useEffect } = React;
+export const jsxHead = `const { useState, useEffect } = React;
 
 `;
 

@@ -1,0 +1,70 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke15</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 15：真實遊戲介面——選公司、選職位（前端／後端／全端）、需求會議列出對應項目、後端題能出現並解題、事件與結算依職位而變
+import { DATA } from './src/companies.js';
+const log = [];
+const show = () => (out.textContent = log.join('\n') + (log.some((l) => /FAIL|ERROR/.test(l)) ? '' : '\nALL OK'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.createElement('iframe'); f.style.cssText = 'width:1200px;height:900px'; document.body.append(f);
+const open = async (save) => { localStorage.clear(); if (save) localStorage.setItem('ddg-save', JSON.stringify(save)); f.src = 'index.html?view=2d&r=' + Math.random(); await new Promise((r) => (f.onload = r)); await wait(700); };
+const d = () => f.contentDocument;
+const q = (s) => d().querySelector(s), qa = (s) => [...d().querySelectorAll(s)];
+const click = async (el) => { el.click(); await wait(200); };
+const btnText = (t) => qa('button').find((b) => b.textContent.includes(t));
+const waitFor = async (fn, ms = 8000) => { for (let t = Date.now(); Date.now() - t < ms; await wait(150)) if (fn()) return true; return false; };
+
+await open();
+ok(qa('.card').length === 4 && !qa('.card.lock').length, '四家公司都開放了');
+for (const [cid, label, nFront, nBack] of [['shop', '購購購', 3, 3], ['bank', '穩穩', 3, 3], ['search', '找找看', 3, 3]]) {
+  await open();
+  const card = qa('.card').find((c) => c.textContent.includes(label));
+  await click(card.querySelector('button'));
+  ok(q('h2')?.textContent.includes('選你的職位'), cid + '：進公司後選職位');
+  for (const [role, btn, f, b] of [['front', '我當前端', nFront, 0], ['back', '我當後端', 0, nBack], ['full', '我當全端', nFront, nBack]]) {
+    await open();
+    await click(qa('.card').find((c) => c.textContent.includes(label)).querySelector('button'));
+    await click(btnText(btn));
+    // 回辦公室 → 找 PM：直接用存檔跳到需求會議畫面
+    const save = JSON.parse(localStorage.getItem('ddg-save'));
+    await open({ ...save, phase: 'req' });
+    const boxes = qa('input[type=checkbox]');
+    ok(boxes.length === f + b, cid + '/' + role + '：需求會議列出 ' + (f + b) + ' 項（實際 ' + boxes.length + '）');
+    ok(role !== 'full' ? true : /後端 API[\s\S]*前端頁面/.test(q('#app')?.textContent || d().body.textContent), cid + '/' + role + '：全端時後端在前、前端在後');
+  }
+}
+// 後端關卡：存檔直接進 level，確認題目與編輯器出現
+for (const [cid, role] of [['ticket', 'back'], ['search', 'full']]) {
+  const co = DATA[cid]; const lv = co.back[0];
+  await open({ phase: 'level', company: cid, role, levels: [lv.id, co.front[0].id], li: 0, done: [], tokens: { primary: '#e11d48', font: '"Noto Sans TC", sans-serif', radius: 6 }, tech: { ts: false, tailwind: false }, back: 'office', pos: { x: 5, y: 5 } });
+  ok(q('h2')?.textContent.includes(lv.title), cid + '：後端關卡顯示標題「' + lv.title + '」');
+  ok(!!(await waitFor(() => q('.cm-editor, .exed .cm-content, .exed textarea'))), cid + '：後端關卡出現程式編輯器');
+  ok(q('.ticket')?.textContent.includes(lv.ticket.replace(/<[^>]+>/g, '').slice(0, 10)), cid + '：顯示工單');
+  ok(!!btnText('照著一步一步做') || d().body.textContent.includes('照著一步一步做'), cid + '：有步驟提示');
+}
+// Python 版後端：存檔 lang:'py'，題目與編輯器出現，且工單改用 Python 函式名稱
+await open({ phase: 'level', company: 'shop', role: 'back', lang: 'py', levels: ['shop-b2'], li: 0, done: [], tokens: { primary: '#e11d48', font: '"Noto Sans TC", sans-serif', radius: 6 }, tech: { ts: false, tailwind: false }, back: 'office', pos: { x: 5, y: 5 } });
+ok(q('h2')?.textContent.includes('Python') && q('.ticket')?.textContent.includes('add_to_cart'), 'Python：標題標示 Python、工單用 add_to_cart');
+ok(!!(await waitFor(() => q('.cm-editor, .exed .cm-content, .exed textarea'))), 'Python：出現程式編輯器');
+await open();
+await click(qa('.card').find((c) => c.textContent.includes('穩穩')).querySelector('button'));
+ok(qa('input[name=lang]').length === 2, '選職位畫面有後端語言選項');
+// 全端：後端做完 → 下一個是前端頁，且工單有「全端」提示
+await open({ phase: 'level', company: 'shop', role: 'full', levels: ['shop-b1', 'shop-list'], li: 1, done: ['shop-b1'], tokens: { primary: '#e11d48', font: '"Noto Sans TC", sans-serif', radius: 6 }, tech: { ts: false, tailwind: false }, back: 'office', pos: { x: 5, y: 5 } });
+ok(q('.ticket')?.textContent.includes('全端'), 'full：前端頁的工單有「這一頁要接你剛寫的後端」提示');
+ok(q('h2')?.textContent.includes('商品列表頁'), 'shop：前端頁顯示商品列表頁');
+// 結算依職位而變
+await open({ phase: 'end', company: 'bank', role: 'back', stats: { progress: 70, quality: 70, stress: 30, team: 70 } });
+ok(d().body.textContent.includes('可靠的後端'), 'end：結算依職位寫「後端」');
+await open({ phase: 'end', company: 'bank', role: 'full', stats: { progress: 100, quality: 100, stress: 0, team: 100 } });
+ok(d().body.textContent.includes('網路銀行'), 'end：高分結算寫公司產品「網路銀行」');
+// 後端事件
+await open({ phase: 'event', company: 'search', role: 'back', events: DATA.search.backEvents.slice(0, 1) });
+ok(q('.bubble')?.textContent.includes('熱搜'), 'event：後端職位看到後端類事件');
+show();
+</script>

@@ -108,6 +108,45 @@
   .pool { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; } button.blk { text-align: left; font-family: ui-monospace, Consolas, monospace; font-size: 13px; border-radius: 10px; } .mline { cursor: pointer; padding: 4px 8px; border-left: 3px solid var(--line); margin: 4px 0; } .mline .why { font-size: 13px; margin-left: 22px; cursor: default; }
   .blk-code select { font: inherit; background: #333; color: #ffd666; border-radius: 6px; padding: 1px 4px; } .bmsg { margin: 6px 0; }
   .tbl { border-collapse: collapse; font-size: 13px; margin: 8px 0; width: 100%; } .tbl th, .tbl td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; } .tbl th { background: rgba(255,255,255,.08); }
+
+/* 筆電版面（約 15 吋、高度 ~700px）：左邊說明欄和右邊工作區各自捲動，提示永遠在旁邊、不用在頁面上下來回拉 */
+@media (min-width: 801px) {
+  .split { grid-template-columns: clamp(300px, 30vw, 440px) 1fr; height: calc(100dvh - 76px); align-items: stretch; }
+  .split > .side { overflow-y: auto; min-height: 0; padding-right: 8px; font-size: 15px; overscroll-behavior: contain; }
+  .split > .work, .split > .work1 { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .work { grid-template-rows: minmax(320px, 58%) minmax(300px, 1fr); }
+  .work1 { height: auto; } .work { overflow-x: hidden; } .cmp, .cmp > figure { min-width: 0; }
+  .side .hsteps { font-size: 14px; } .side .hsteps pre, .side pre { font-size: 12.5px; }
+  .side h2 { margin: 4px 0 8px; font-size: 18px; }
+}
+
+/* RWD：平板（≤1100px）說明欄變窄；手機／窄視窗（≤800px）上下排、整頁正常捲動 */
+@media (min-width: 801px) and (max-width: 1100px) {
+  .split { grid-template-columns: clamp(240px, 34vw, 320px) minmax(0, 1fr); gap: 10px; }
+  .cmp { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } /* 設計稿與預覽上下排，各吃全寬 */
+  .work { grid-template-rows: minmax(300px, 46%) minmax(520px, 1fr); }
+  header { gap: 8px; } header .hm, header .rs, header .rs2 { font-size: 12px; }
+}
+@media (max-width: 800px) {
+  body { font-size: 15px; }
+  header { padding: 6px 10px; gap: 6px 10px; } .stat { font-size: 12px; } header .hm, header .rs, header .rs2 { font-size: 12px; padding: 2px 8px; }
+  section, section:has(.split) { padding: 8px 10px; }
+  .split { height: auto; grid-template-columns: minmax(0, 1fr); } /* minmax(0,…)：長程式行不會把整頁撐寬 */
+  .split > .side, .split > .work, .split > .work1 { min-width: 0; }
+  .split > .side { overflow: visible; }
+  .work { grid-template-rows: 380px auto; } .work1 { height: 82vh; min-height: 420px; }
+  .cmp { grid-template-columns: 1fr; } .cmp > figure { height: 360px; }
+  .exbox:has(> .cmp) { grid-template-rows: 300px auto auto auto; } .exbox .cmp { height: auto; }
+  .exres { max-height: none; }
+  pre, .labout pre { font-size: 12px; max-width: 100%; }
+  .tbl { display: block; overflow-x: auto; }
+  .vbtns button, .opt, .chip { max-width: 100%; white-space: normal; text-align: left; }
+  button { min-height: 40px; } /* 手指好點 */
+  .lab { padding: 8px; } .labline { padding: 6px; }
+  iframe { max-width: 100%; }
+  .map { --t: min(46px, calc((100vw - 36px) / var(--w))); } /* 辦公室地圖依手機寬度縮小格子 */
+  .map .npc, .map .me, .map .obj { font-size: 12px; }
+}
 </style>
 </head>
 <body>

@@ -4,7 +4,7 @@ const CDN = 'https://cdnjs.cloudflare.com/ajax/libs';
 const json = (v) => JSON.stringify(v).replace(/</g, '\\u003c');
 
 // 預覽頁：載入 React + Babel，把玩家的 App 編譯後掛上去；fetch 由 FIXTURES 假裝成 API
-export function buildSrcdoc({ code, css = '', tech }) {
+export function buildSrcdoc({ code, css = '', tech, fixtures = FIXTURES }) {
   const presets = tech.ts ? "['react',['typescript',{isTSX:true,allExtensions:true}]]" : "['react']";
   return `<!doctype html><html><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=Noto+Serif+TC&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@ const root = document.getElementById('root');
 const show = (m) => { window.__error = String(m); root.innerHTML = '<pre style="color:crimson;white-space:pre-wrap"></pre>'; root.firstChild.textContent = String(m); };
 window.onerror = (m) => show(m);
 document.addEventListener('submit', (e) => e.preventDefault());
-const FIX = ${json(FIXTURES)};
+const FIX = ${json(fixtures)};
 window.fetch = (u) => {
   const p = String(u).replace(/^https?:\\/\\/[^/]+/, '');
   return Promise.resolve(p in FIX

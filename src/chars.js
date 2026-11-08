@@ -1,6 +1,6 @@
 // 手繪風 SVG 角色：同一個臉型，靠髮型、配件、衣服顏色區分；mood 換表情
 export const ROLES = {
-  me: { name: '我（新人前端）', shirt: '#7c9cff', hair: '#5b3a29', extra: 'headphones' },
+  me: { name: '我（新人工程師）', shirt: '#7c9cff', hair: '#5b3a29', extra: 'headphones' },
   pm: { name: 'PM 小專', shirt: '#ffb347', hair: '#3b3b4f', extra: 'bun' },
   designer: { name: '設計師 小美', shirt: '#ff7a90', hair: '#8a4b6b', extra: 'beret' },
   qa: { name: 'QA 小測', shirt: '#6ccf9c', hair: '#2f4f4f', extra: 'glasses' },

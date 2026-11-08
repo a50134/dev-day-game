@@ -42,6 +42,55 @@ const TPL = {
     { title: '功能：訂單查詢頁（含篩選）', effort: 8, due: 6, imp: 'high' },
   ],
 };
+
+// 其他公司的主題：工單與事件的文字換成該公司的產品（搶票通是上面的預設）。
+// 事件覆寫：{ 事件id: { text, titles } }，titles 依序換掉該事件選項裡新增工單的標題。
+const T = (title, effort, due, imp) => ({ title, effort, due, imp });
+const THEMES = {
+  shop: {
+    ltpl: T('專案：結帳流程改版（含 A/B 測試）', 26, 9, 'high'),
+    S: [T('bug：結帳頁輸入優惠碼後金額沒更新', 1.5, 0, 'high'), T('bug：商品列表圖片在手機版跑版', 2, 1, 'normal'), T('文案：首頁橫幅改成雙十二活動', 1, 0, 'normal'), T('bug：忘記密碼信件沒有寄出', 2, 1, 'high'), T('小改：加入購物車按鈕在小螢幕被切到', 1, 2, 'normal'), T('bug：規格選擇在 Safari 無法點選', 3, 1, 'urgent'), T('小改：商品頁加上分享按鈕', 1.5, 3, 'normal'), T('文案：FAQ 頁面錯字修正', 0.5, 3, 'normal')],
+    M: [T('功能：商品圖片支援手機手勢縮放', 8, 4, 'high'), T('功能：會員登入加上「記住我」', 6, 5, 'normal'), T('功能：訂單查詢頁（含篩選）', 8, 6, 'high')],
+    incident: { text: '結帳頁顯示 500 錯誤，客服說已經有顧客在抱怨了！' },
+    extra: { text: '老闆臨時要加一個小修：商品價格顯示改成 NT$ 2,480（加千分位），今天能上嗎？', titles: ['小改：商品價格加上千分位'] },
+    scope: { text: '客戶看完 demo，想在結帳流程再加一個「到貨通知」功能……你覺得可以放進這次上線嗎？' },
+    prod: { text: '線上結帳剛剛有一批訂單金額算錯（運費被重複計算）！要馬上止血。', titles: ['事後檢討：寫出錯誤原因與預防措施', 'bug：找出運費重複計算的真正原因'] },
+    handover: { text: '小陳臨時請假，他手上的「退貨查詢」bug 需要有人接，今天內要回覆客戶。', titles: ['bug：接手小陳的退貨查詢問題'] },
+    demo: { text: '大客戶後天要看 demo，要把「規格選擇頁手機版」先調到可展示的程度。', titles: ['demo：規格選擇頁手機版調整到可展示'] },
+  },
+  bank: {
+    ltpl: T('專案：轉帳流程改版（含 A/B 測試）', 26, 9, 'high'),
+    S: [T('bug：轉帳頁輸入金額後可用餘額沒更新', 1.5, 0, 'high'), T('bug：交易紀錄在手機版跑版', 2, 1, 'normal'), T('文案：首頁橫幅改成年終活動', 1, 0, 'normal'), T('bug：忘記密碼簡訊沒有寄出', 2, 1, 'high'), T('小改：確認轉帳按鈕在小螢幕被切到', 1, 2, 'normal'), T('bug：繳費頁在 Safari 無法勾選帳單', 3, 1, 'urgent'), T('小改：交易明細加上分享按鈕', 1.5, 3, 'normal'), T('文案：FAQ 頁面錯字修正', 0.5, 3, 'normal')],
+    M: [T('功能：交易紀錄支援匯出 CSV', 8, 4, 'high'), T('功能：登入加上生物辨識', 6, 5, 'normal'), T('功能：定期轉帳設定頁（含驗證）', 8, 6, 'high')],
+    incident: { text: '轉帳頁顯示 500 錯誤，客服說已經有客戶在抱怨了！' },
+    extra: { text: '老闆臨時要加一個小修：首頁餘額顯示改成 NT$ 12,000（加千分位），今天能上嗎？', titles: ['小改：首頁餘額加上千分位'] },
+    scope: { text: '客戶看完 demo，想在轉帳流程再加一個「常用帳號」功能……你覺得可以放進這次上線嗎？' },
+    prod: { text: '線上轉帳剛剛有一批交易被重複扣款！要馬上止血。', titles: ['事後檢討：寫出錯誤原因與預防措施', 'bug：找出重複扣款的真正原因'] },
+    handover: { text: '小陳臨時請假，他手上的「對帳單」bug 需要有人接，今天內要回覆客戶。', titles: ['bug：接手小陳的對帳單問題'] },
+    demo: { text: '大客戶後天要看 demo，要把「繳費頁手機版」先調到可展示的程度。', titles: ['demo：繳費頁手機版調整到可展示'] },
+  },
+  search: {
+    ltpl: T('專案：搜尋結果頁改版（含 A/B 測試）', 26, 9, 'high'),
+    S: [T('bug：搜尋結果的瀏覽次數顯示成 NaN', 1.5, 0, 'high'), T('bug：搜尋結果在手機版跑版', 2, 1, 'normal'), T('文案：首頁橫幅改成雙十二活動', 1, 0, 'normal'), T('bug：忘記密碼信件沒有寄出', 2, 1, 'high'), T('小改：搜尋框在小螢幕被切到', 1, 2, 'normal'), T('bug：篩選標籤在 Safari 無法點選', 3, 1, 'urgent'), T('小改：結果頁加上分享按鈕', 1.5, 3, 'normal'), T('文案：FAQ 頁面錯字修正', 0.5, 3, 'normal')],
+    M: [T('功能：搜尋建議（輸入時下拉提示）', 8, 4, 'high'), T('功能：搜尋紀錄「記住我」', 6, 5, 'normal'), T('功能：進階搜尋頁（含篩選）', 8, 6, 'high')],
+    incident: { text: '搜尋結果頁顯示 500 錯誤，客服說已經有使用者在抱怨了！' },
+    extra: { text: '老闆臨時要加一個小修：結果頁的瀏覽次數改成 98,000 這種加千分位的寫法，今天能上嗎？', titles: ['小改：瀏覽次數加上千分位'] },
+    scope: { text: '客戶看完 demo，想在搜尋流程再加一個「相關搜尋」功能……你覺得可以放進這次上線嗎？' },
+    prod: { text: '線上搜尋剛剛有一批結果排序錯誤（冷門網站排在最前面）！要馬上止血。', titles: ['事後檢討：寫出錯誤原因與預防措施', 'bug：找出排序錯誤的真正原因'] },
+    handover: { text: '小陳臨時請假，他手上的「分頁」bug 需要有人接，今天內要回覆客戶。', titles: ['bug：接手小陳的分頁問題'] },
+    demo: { text: '大客戶後天要看 demo，要把「搜尋結果頁手機版」先調到可展示的程度。', titles: ['demo：搜尋結果頁手機版調整到可展示'] },
+  },
+};
+const ltplOf = (C) => THEMES[C.company]?.ltpl || LTPL;
+const poolOf = (C, size) => THEMES[C.company]?.[size] || TPL[size];
+// 套用公司主題：換事件文字與新增工單的標題
+const themed = (def, C) => {
+  const o = THEMES[C.company]?.[def.id];
+  if (!o || !def) return def;
+  let k = 0;
+  return { ...def, text: o.text ?? def.text, options: def.options.map((op) => (op.add && o.titles?.[k] ? { ...op, add: { ...op.add, tpl: { ...op.add.tpl, title: o.titles[k++] } } } : op)) };
+};
+
 // 每天會多出哪些新工單（第 1 天另外是初始工單）
 const ARRIVE = { 2: ['S'], 3: ['S'], 4: ['M'], 5: ['S'], 6: ['S'], 7: ['M'], 8: ['S'], 9: ['S'] };
 const SIZE_NAME = { S: '小單', M: '中型功能', L: '大型專案' };
@@ -55,8 +104,8 @@ function mk(C, size, tpl) {
 }
 function drawTpl(C, size) {
   const used = new Set(C.tickets.map((t) => t.title));
-  const pool = TPL[size].filter((t) => !used.has(t.title));
-  return shuffle(C, pool.length ? pool : TPL[size])[0];
+  const all = poolOf(C, size), pool = all.filter((t) => !used.has(t.title));
+  return shuffle(C, pool.length ? pool : all)[0];
 }
 
 /* ---------------- 突發事件與固定行程 ---------------- */
@@ -162,9 +211,9 @@ const FIXED_EVENTS = {
 const findDef = (id) => INTERRUPTS.find((x) => x.id === id) || Object.values(SPECIALS).find((x) => x.id === id);
 
 /* ---------------- 建立專案與每一天 ---------------- */
-export function newCamp(seed) {
-  const C = { rs: seed >>> 0, day: 1, total: DAYS, stage: 'morning', nextId: 1, tickets: [], hist: [], arrivals: [], advice: null, deferred: 0, lateCount: 0, w: null, sickDays: 0, outcome: null };
-  C.tickets.push(mk(C, 'L', LTPL), mk(C, 'M', drawTpl(C, 'M')));
+export function newCamp(seed, company = 'ticket') {
+  const C = { company, rs: seed >>> 0, day: 1, total: DAYS, stage: 'morning', nextId: 1, tickets: [], hist: [], arrivals: [], advice: null, deferred: 0, lateCount: 0, w: null, sickDays: 0, outcome: null };
+  C.tickets.push(mk(C, 'L', ltplOf(C)), mk(C, 'M', drawTpl(C, 'M')));
   C.tickets.push(mk(C, 'S', drawTpl(C, 'S')));
   C.tickets.push(mk(C, 'S', drawTpl(C, 'S')));
   C.arrivals = C.tickets.map((t) => t.id);
@@ -276,7 +325,7 @@ export function makeWorkday({ S, screen, btn, apply, go, say: sayFn, store }) {
 
   /* ---- 開場 ---- */
   function intro() {
-    screen(`<h1>📋 專案衝刺</h1>${say2('lead', '這次不是一天，是兩週！你要在 10 個工作天內，把「購票流程改版」這個大型專案做完上線。', 'happy')}
+    screen(`<h1>📋 專案衝刺</h1>${say2('lead', `這次不是一天，是兩週！你要在 10 個工作天內，把「${ltplOf({ company: S.company }).title.replace('專案：', '').replace('（含 A/B 測試）', '')}」這個大型專案做完上線。`, 'happy')}
       <div class="card"><h3>規則</h3><ul>
         <li>每天 9:00–18:00，手上同時有<b>大型專案、中型功能、小單</b>，各有不同的<b>期限</b>和<b>重要程度</b>（🔴緊急 🟠重要 ⚪一般）。</li>
         <li>每天會<b>進來新的工單</b>，也會被<b>會議、PR 審查、緊急 bug</b> 打斷；中間還會發生需求變更、線上事故、同事請假這類大事。</li>
@@ -284,7 +333,7 @@ export function makeWorkday({ S, screen, btn, apply, go, say: sayFn, store }) {
         <li>目標：<b>大型專案如期完成</b>，同時不要把自己累垮（壓力太高效率會下降，甚至請病假）。</li></ul>
         <p><small>大型專案在這裡被壓縮成兩週，真實的通常是數週到數個月。數字取常見範圍，因公司而異。</small></p></div>
       ${btn('開始第 1 天 ☕', 0, 'primary')} ${btn('← 回辦公室', 1)}`,
-    [() => { S.camp = newCamp(S.wdSeed ?? (Date.now() % 1e9)); S.wdSeed = null; save(); go('workday'); }, () => go('office')]);
+    [() => { S.camp = newCamp(S.wdSeed ?? (Date.now() % 1e9), S.company); S.wdSeed = null; save(); go('workday'); }, () => go('office')]);
   }
 
   /* ---- 每天早上 ---- */
@@ -329,7 +378,7 @@ export function makeWorkday({ S, screen, btn, apply, go, say: sayFn, store }) {
 
     let stage;
     if (due) {
-      const def = due.kind === 'fixed' ? FIXED_EVENTS[due.id] : findDef(due.id);
+      const def = due.kind === 'fixed' ? FIXED_EVENTS[due.id] : themed(findDef(due.id), C);
       const type = due.kind === 'fixed' ? def.type : 'int';
       const opts = def.options.map((o) => btn(`${o.label} <small>${o.slots ? '（' + o.slots * 30 + ' 分鐘）' : '（幾乎不花時間）'}</small>`, add(() => resolve(type, o, due.key, def.text.slice(0, 18))), 'opt')).join('');
       stage = `${say2(def.who, def.text, def.mood)}${opts}`;
@@ -459,7 +508,7 @@ export function makeWorkday({ S, screen, btn, apply, go, say: sayFn, store }) {
           : '<li><b>提早溝通：</b>發現大專案吃緊的那天，就跟 PM 談範圍或期限，不要等到最後一天。</li><li><b>縮小範圍：</b>先上線最核心的版本（MVP），其他放下一版。</li><li><b>保護專注：</b>每天固定留 2–3 小時給大專案，用「快速回覆＋約時間」處理打斷。</li><li><b>別一味加人或加班：</b>加班會讓壓力累積、效率下降；臨時加人也要花時間交接。</li>'}
         <li><small>這是遊戲模擬：大型專案被壓縮成兩週，數字取常見範圍，真實情況因公司與團隊而異。</small></li></ul></div>
       ${btn('再挑戰一次', 0, 'primary')} ${btn('← 回辦公室', 1)}`,
-    [() => { S.camp = newCamp(Date.now() % 1e9); save(); go('workday'); }, () => go('office')]);
+    [() => { S.camp = newCamp(Date.now() % 1e9, S.company); save(); go('workday'); }, () => go('office')]);
   }
 
   return {

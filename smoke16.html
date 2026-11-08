@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke16</title>
+<pre id="out">running…</pre>
+<script type="module">
+// 冒煙測試 16：專案衝刺跟著公司換主題（工單、事件、專案名稱），搶票通維持原樣
+import { newCamp } from './src/workday.js';
+const log = [];
+const show = () => (out.textContent = log.join('\n') + (log.some((l) => /FAIL|ERROR/.test(l)) ? '' : '\nALL OK'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+addEventListener('error', (e) => { log.push('ERROR ' + e.message); show(); });
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const WORD = { ticket: '購票', shop: '結帳', bank: '轉帳', search: '搜尋' };
+for (const [cid, w] of Object.entries(WORD)) {
+  const titles = [];
+  for (let seed = 1; seed < 40; seed++) newCamp(seed, cid).tickets.forEach((t) => titles.push(t.title));
+  ok(titles.some((t) => t.includes(w)), cid + '：大型專案名稱含「' + w + '」');
+  if (cid !== 'ticket') ok(!titles.some((t) => /座位|購票|演唱/.test(t)), cid + '：工單裡沒有搶票通的字眼');
+}
+// 真實介面：開場畫面的專案名稱
+const f = document.createElement('iframe'); f.style.cssText = 'width:1200px;height:900px'; document.body.append(f);
+for (const [cid, w] of [['shop', '結帳流程改版'], ['bank', '轉帳流程改版'], ['search', '搜尋結果頁改版'], ['ticket', '購票流程改版']]) {
+  localStorage.clear(); localStorage.setItem('ddg-save', JSON.stringify({ phase: 'workday', company: cid, goal: 'req', back: 'office' }));
+  f.src = 'index.html?view=2d&r=' + Math.random(); await new Promise((r) => (f.onload = r)); await wait(800);
+  ok(f.contentDocument.body.textContent.includes(w), cid + '：開場說的是「' + w + '」');
+}
+// 事件文字：走完整個衝刺會抽到主題事件；這裡直接檢查 PM 的第 3 天事件
+localStorage.clear();
+localStorage.setItem('ddg-save', JSON.stringify({ phase: 'workday', company: 'bank', goal: 'req', back: 'office', camp: { ...newCamp(7, 'bank'), day: 3, stage: 'morning' } }));
+f.src = 'index.html?view=2d&r=' + Math.random(); await new Promise((r) => (f.onload = r)); await wait(800);
+ok(!f.contentDocument.body.textContent.includes('候補通知'), 'bank：沒有搶票通的「候補通知」');
+show();
+</script>

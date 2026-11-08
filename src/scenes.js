@@ -1,9 +1,9 @@
 // 遊戲文字與選項資料。效果 fx 的鍵：progress 進度 / quality 品質 / stress 壓力 / team 同事關係
 export const COMPANIES = [
   { id: 'ticket', name: '搶票通 TixRush', desc: '演唱會與展演售票平台。開賣日流量像海嘯。', open: true },
-  { id: 'shop', name: '購購購 ShopGo', desc: '電商平台（尚未開放）', open: false },
-  { id: 'bank', name: '穩穩 SteadyPay', desc: '金融服務（尚未開放）', open: false },
-  { id: 'search', name: '找找看 FindIt', desc: '搜尋網站（尚未開放）', open: false },
+  { id: 'shop', name: '購購購 ShopGo', desc: '電商平台。雙 11 的購物車和庫存，一個都不能錯。', open: true },
+  { id: 'bank', name: '穩穩 SteadyPay', desc: '網路銀行。轉帳、繳費，錢的事絕對不能出錯。', open: true },
+  { id: 'search', name: '找找看 FindIt', desc: '搜尋網站。熱搜一來，每秒幾千次查詢。', open: true },
 ];
 
 export const COLORS = [

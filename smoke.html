@@ -23,8 +23,10 @@ const click = async (el) => { el.click(); await wait(150); };
 const key = async (k) => { d.dispatchEvent(new w.KeyboardEvent('keydown', { key: k, bubbles: true })); await wait(60); };
 const btnText = (t) => qa('button').find((b) => b.textContent.includes(t));
 
-ok(q('h1')?.textContent.includes('前端工程師的一天'), '公司選擇畫面');
+ok(q('h1')?.textContent.includes('工程師的一天'), '公司選擇畫面');
 await click(btnText('進入公司'));
+ok(q('h2')?.textContent.includes('選你的職位'), '進公司後要選職位');
+await click(btnText('我當前端'));
 ok(q('.map') && q('#me'), '進入辦公室地圖');
 const px = () => [parseInt(q('#me').style.left.match(/\*(\d+)/)[1]), parseInt(q('#me').style.top.match(/\*(\d+)/)[1])];
 const [x0, y0] = px();
@@ -47,7 +49,7 @@ ok(px()[0] === 12 && px()[1] === 4, '走到教室門口 ' + px());
 await key('e');
 ok(q('h1')?.textContent.includes('教室'), '進入教室');
 await click(btnText('進入')); // 先選課（第一張是 TypeScript）
-await click(btnText('上課'));
+await click(qa('.row').find((r) => r.textContent.includes('第 1 堂')).querySelector('button')); // 第〇章是超簡單版，這裡測第一章第 1 堂
 ok(q('h2')?.textContent.includes('第 1 堂'), '開始第一堂 TS 課');
 // 小步驟：答對才能往下
 const opts = () => qa('.qc .opt');

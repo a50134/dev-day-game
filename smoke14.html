@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>smoke14</title>
+<pre id="out">running…</pre>
+<iframe id="pv" style="width:900px;height:700px"></iframe>
+<script type="module">
+// 冒煙測試 14：四家公司的每個前端關卡——參考解答必須通過 QA 檢查、起始程式必須不通過；後端題的資料齊全
+import { DATA } from './src/companies.js';
+import { PY } from './src/companies-py.js';
+import { mount } from './src/sandbox.js';
+import { runCheck } from './src/checks.js';
+const log = [];
+const show = () => (out.textContent = log.join('\n') + (log.some((l) => /FAIL|ERROR/.test(l)) ? '' : '\nALL OK'));
+const ok = (c, m) => { log.push((c ? 'OK   ' : 'FAIL ') + m); show(); };
+addEventListener('unhandledrejection', (e) => { log.push('ERROR ' + (e.reason?.stack || e.reason)); show(); });
+const tokens = { primary: '#e11d48', font: '"Noto Sans TC", sans-serif', radius: 6 };
+for (const [cid, co] of Object.entries(DATA)) {
+  ok(co.front.length === 3 && co.back.length === 3 && co.backEvents.length === 2 && co.events.length >= 4 && co.reviews.length === 2, cid + '：3 前端頁、3 後端題、事件與設計評論齊全');
+  ok(co.pages.every((p) => co.levels[p.id]), cid + '：需求會議列出的每一項都有對應關卡');
+  for (const lv of co.front) {
+    await mount(pv, { code: lv.solutionJsx(tokens), css: lv.solutionCss(tokens), tech: { ts: false, tailwind: false }, fixtures: co.fixtures });
+    const good = await runCheck(lv.id, pv, tokens, lv);
+    ok(good.length === 0, cid + '/' + lv.id + '：參考解答通過 QA' + (good.length ? ' → ' + good.join('；') : ''));
+    await mount(pv, { code: lv.starterJsx(tokens), css: lv.starterCss(tokens), tech: { ts: false, tailwind: false }, fixtures: co.fixtures });
+    const bad = await runCheck(lv.id, pv, tokens, lv);
+    ok(bad.length > 0, cid + '/' + lv.id + '：起始程式不通過（' + bad.length + ' 項）');
+  }
+  for (const b of co.back) ok(PY[b.id]?.kind === 'code' && PY[b.id].lang === 'py' && PY[b.id].tests && PY[b.id].steps?.length >= 3, cid + '/' + b.id + '：Python 版齊全');
+  for (const b of co.back) ok(b.ex.kind === 'code' && b.ex.tests && b.ex.starter && b.ex.solution && b.ex.steps?.length >= 3 && b.ex.demo, cid + '/' + b.id + '：後端題欄位齊全');
+}
+show();
+</script>

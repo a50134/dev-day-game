@@ -45,7 +45,7 @@ const walk = async (tx, ty) => { // 先橫向再縱向（地圖中間走道是 y
   ok(CS.every((c) => c.chapters[c.chapters.length - 1].title.includes('手把手')), '資料 七門課最後一章都是手把手專案');
 }
 // ---- A. 章節測驗 → 小事件 ----
-const ch = COURSES[0].chapters[0];
+const ch = COURSES[0].chapters[1]; // chapters[0] 是第〇章超簡單版
 await open({ phase: 'classroom', back: 'office', prog: { ts1: true, ts2: true, ts3: true }, room: 'ts', pos: { x: 5, y: 5 }, goal: 'req' });
 ok(q('h1')?.textContent.includes('教室'), 'A 載入存檔直接進教室');
 await click(btnText('開始測驗'));
@@ -70,6 +70,8 @@ ok(q('.map') && !qa('.mark').some((m) => m.textContent === '💬'), 'A 選完選
 // ---- B. 主線串接 ----
 await open(null);
 await click(btnText('進入公司'));
+ok(q('h2')?.textContent.includes('選你的職位'), '進公司後要選職位');
+await click(btnText('我當前端'));
 await walk(3, 3); await key(' ');
 ok(q('h2')?.textContent.includes('需求'), 'B 找 PM → 需求會議');
 await click(btnText('決定了'));
@@ -98,12 +100,12 @@ ok(qa('button').filter((b) => b.textContent === '上課' || b.textContent === '�
 await click(btnText('選別門課'));
 const twBtn = qa('.card').find((c) => c.textContent.includes('Tailwind')).querySelector('button');
 await click(twBtn);
-await click(btnText('上課'));
+await click(qa('.row').find((r) => r.textContent.includes('第 1 堂')).querySelector('button'));
 ok(q('h2')?.textContent.includes('Tailwind 是什麼'), 'C 可以進 Tailwind 第 1 堂');
 await click(btnText('回教室'));
 await click(btnText('選別門課'));
 await click(btnText('返回'));
-ok(q('h1')?.textContent.includes('前端工程師的一天'), 'C 返回回到原本的畫面');
+ok(q('h1')?.textContent.includes('工程師的一天'), 'C 返回回到原本的畫面');
 document.title = log.some((l) => !l.startsWith('OK')) ? 'FAIL' : 'PASS';
 log.push(document.title === 'PASS' ? 'ALL OK' : 'FAILED'); show();
 </script>
