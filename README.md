@@ -29,3 +29,6 @@ python3 serve.py
 - `src/courses.js`、`src/courses-fe.js` 課程資料（TS／Tailwind、React／Vue）；`src/practice.js` 練習引擎（TS 修紅線、Tailwind 比對樣式）；`src/ts.js` TS 編譯器與挑戰
 - `src/levels.js`、`src/checks.js`、`src/sandbox.js`、`src/fixtures.js` 實作關卡（預覽、假 API、QA 檢查）
 - `src/scenes.js` 文字；`src/chars.js` SVG 角色；`src/editor.js` CodeMirror；`src/store.js` 存檔
+
+## Node.js 影片教學
+`node-video.html`：6 部、一步一步自動播放的 Node.js 入門（程式自己打出來＋字幕＋可開語音），從安裝做到排行榜 API 與前端串接。教室的 Node.js 課卡片有入口。
