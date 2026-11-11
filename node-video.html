@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Node.js 影片教學</title>
+<link rel="stylesheet" href="src/video.css">
+</head>
+<body>
+<main>
+  <h1>🎬 Node.js 影片教學</h1>
+  <p style="margin:0;font-size:14px">按「播放」會自己一步一步走；也可以自己按「下一步」。<a href="./">← 回遊戲</a></p>
+  <nav id="eps"></nav>
+  <h2 id="title"></h2>
+  <span id="count"></span>
+  <div class="track"><div id="bar"></div></div>
+  <div id="screen">
+    <div id="slide" hidden></div>
+    <div id="ed" class="pane" hidden><header>📄 <span id="fname"></span></header><div id="code"></div></div>
+    <div id="term" class="pane" hidden><header>⌨️ 終端機（綠色是你要打的指令）</header><div id="tout"></div></div>
+    <div id="web" class="pane" hidden><header><span id="url"></span></header><div id="page"></div></div>
+  </div>
+</main>
+<footer><div>
+  <p id="say"></p>
+  <div class="ctl"><button id="prev">⏮ 上一步</button><button id="play" class="primary">▶ 播放</button><button id="next">下一步 ⏭</button></div>
+  <div class="ctl2"><button id="again">↻ 重播這一步</button><button id="voice">🔇 語音：關</button>
+    <select id="speed" aria-label="速度"><option value="0.75">慢</option><option value="1" selected>正常</option><option value="1.5">快</option></select></div>
+</div></footer>
+<script type="module" src="src/nodevideo.js"></script>
+</body>
+</html>

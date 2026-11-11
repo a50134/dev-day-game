@@ -29,3 +29,8 @@ python3 serve.py
 - `src/courses.js`、`src/courses-fe.js` 課程資料（TS／Tailwind、React／Vue）；`src/practice.js` 練習引擎（TS 修紅線、Tailwind 比對樣式）；`src/ts.js` TS 編譯器與挑戰
 - `src/levels.js`、`src/checks.js`、`src/sandbox.js`、`src/fixtures.js` 實作關卡（預覽、假 API、QA 檢查）
 - `src/scenes.js` 文字；`src/chars.js` SVG 角色；`src/editor.js` CodeMirror；`src/store.js` 存檔
+
+## 影片教學
+一步一步自動播放的入門教學（程式自己打出來＋字幕＋可開語音），教室的課程卡片有入口。
+- `node-video.html`：Node.js，6 部，從安裝做到排行榜 API 與前端串接。
+- `react-video.html`：React，7 部，從 Vite 建專案做到狀態、元件、串接 API、React Router、自訂 Hook。

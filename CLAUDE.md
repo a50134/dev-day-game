@@ -16,6 +16,7 @@
 - 遊戲主線有四家公司（`companies.js`：搶票通、購購購、穩穩、找找看），進公司後選職位：前端（3 個 React 頁面）／後端（3 個 Node.js 函式題，真的執行並測試）／全端（先後端、再前端）。搶票通的前端關卡手寫在 `levels.js`，其他三家用 `levels-gen.js` 的三種樣板（列表 / 選取 / 表單）產生，每關有自己的 `check`；假 API 資料在各公司的 fixtures，`sandbox.js` 的 `buildSrcdoc` 吃 `fixtures`。要新增公司：在 `companies.js` 的 `DATA` 加一包、在 `scenes.js` 的 `COMPANIES` 加一列。測試 `smoke14.html`（每家每關：解答過、起始不過）、`smoke15.html`（選公司／職位／後端關卡／結算）。後端題另有 Python 版（`companies-py.js`，id 相同、snake_case；選後端／全端時在職位畫面選語言，`S.lang`）。工作日 sprint（`workday.js`）有 `THEMES`，工單與事件文字依 `S.company` 換主題（測試 `smoke16.html`）。
 - 版面（index.html 最後的 CSS）：>1100px 筆電：`.split` 固定一個螢幕高，說明欄和工作區各自捲動（編輯器佔約 58%）；801–1100px 平板：說明欄變窄、設計稿與預覽上下排；≤800px 手機：單欄、整頁正常捲動。grid 欄要寫 `minmax(0, 1fr)`，不然長程式行會把頁面撐寬。
 - 練習類型（`src/practice.js`）：`ts`、`tw`、`react`、`vue`、`web`（串真 API 的一般網頁）、`code`（Node.js / Python，`src/runner.js` 用 Web Worker 真的執行，Python 用 Pyodide）。
+- 影片式教學（獨立頁面，自動播放、字幕、可開語音；教室的課程卡片有入口，在 `course-ui.js` 的 `VIDEO`）：播放器 `src/video-player.js`、樣式 `src/video.css`。Node.js：`node-video.html` + `src/nodevideo.js`（6 部，程式要能真的用 node + express 跑）。React：`react-video.html` + `src/reactvideo.js`（7 部，照六角 React 班課綱，程式要能真的用 Vite 建置）。要加新課：寫一個資料檔＋一個 html。
 - 專案衝刺（`src/workday.js`）：10 天、多張工單、突發事件、每日檢討。
 
 ## 驗證
