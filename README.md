@@ -30,5 +30,7 @@ python3 serve.py
 - `src/levels.js`、`src/checks.js`、`src/sandbox.js`、`src/fixtures.js` 實作關卡（預覽、假 API、QA 檢查）
 - `src/scenes.js` 文字；`src/chars.js` SVG 角色；`src/editor.js` CodeMirror；`src/store.js` 存檔
 
-## Node.js 影片教學
-`node-video.html`：6 部、一步一步自動播放的 Node.js 入門（程式自己打出來＋字幕＋可開語音），從安裝做到排行榜 API 與前端串接。教室的 Node.js 課卡片有入口。
+## 影片教學
+一步一步自動播放的入門教學（程式自己打出來＋字幕＋可開語音），教室的課程卡片有入口。
+- `node-video.html`：Node.js，6 部，從安裝做到排行榜 API 與前端串接。
+- `react-video.html`：React，7 部，從 Vite 建專案做到狀態、元件、串接 API、React Router、自訂 Hook。
