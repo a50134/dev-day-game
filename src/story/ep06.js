@@ -6,6 +6,10 @@ import * as C from '../tw-react-code.js';
 
 const NAV_2_BAD = C.NAV_2.replace('hidden items-center gap-8 lg:flex', 'flex items-center gap-8');
 const NAV_3_BAD = C.NAV_3a.replace('useState<string | null>(null)', 'useState(null)');
+// 手機版分三小步打：先加兩個狀態 → 再加右邊兩個圖示 → 最後加搜尋列和滿版選單（都是從驗證過的 NAV_3／NAV_4 切出來的）
+const L3 = C.NAV_3.split('\n'), L4 = C.NAV_4.split('\n');
+const NAV_4a = [...L3.slice(0, 12), ...L4.slice(12, 14), ...L3.slice(12)].join('\n');
+const NAV_4b = [...L4.slice(0, 95), ...L3.slice(83)].join('\n');
 const ERR_NULL = "Argument of type '\"Alice\"' is not assignable to parameter of type 'SetStateAction<null>'.";
 
 const states = list(['① 未登入：右邊是綠色「註冊／登入」按鈕', '② 已登入：頭像和名字', '③ 展開選單：個人資訊、我的收藏、訂單狀態', '④ 購物車有商品：圖示旁出現數字（第 11 部再做）']);
@@ -88,6 +92,8 @@ const beats = [
   wait(3600),
   unfloat,
   T('最後做手機版：小螢幕右邊只放搜尋和選單兩個圖示，點選單會打開滿版的選單。', 'happy'),
+  type('src/components/Navbar.tsx', NAV_4a, { noCheck: true }),
+  type('src/components/Navbar.tsx', NAV_4b, { noCheck: true }),
   type('src/components/Navbar.tsx', C.NAV_4, { bulk: true }),
   vp('mobile'),
   view(2600),

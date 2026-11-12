@@ -1,5 +1,4 @@
-// 13 部劇本的清單。還沒做好的部會顯示「製作中」。
-import { EPISODES } from '../tw-episodes.js';
+// 13 部劇本的清單（順序就是教學順序）。
 import ep01 from './ep01.js';
 import ep02 from './ep02.js';
 import ep03 from './ep03.js';
@@ -14,15 +13,4 @@ import ep11 from './ep11.js';
 import ep12 from './ep12.js';
 import ep13 from './ep13.js';
 
-const pending = (i) => ({
-  pending: true,
-  title: EPISODES[i].title,
-  endSub: '這一部的動畫還在製作中',
-  beats: [
-    { chapter: '製作中', card: [`第 ${i + 1} 部`, EPISODES[i].title, '🛠️'], ms: 2600 },
-    { say: 'teacher', mood: 'happy', text: '這一部的動畫還在製作中～先看講義吧！' },
-  ],
-});
-
-const made = { 0: ep01, 1: ep02, 2: ep03, 3: ep04, 4: ep05, 5: ep06, 6: ep07, 7: ep08, 8: ep09, 9: ep10, 10: ep11, 11: ep12, 12: ep13 };
-export const SCRIPTS = EPISODES.map((_, i) => made[i] || pending(i));
+export const SCRIPTS = [ep01, ep02, ep03, ep04, ep05, ep06, ep07, ep08, ep09, ep10, ep11, ep12, ep13];
