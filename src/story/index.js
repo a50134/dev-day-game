@@ -12,6 +12,7 @@ import ep09 from './ep09.js';
 import ep10 from './ep10.js';
 import ep11 from './ep11.js';
 import ep12 from './ep12.js';
+import ep13 from './ep13.js';
 
 const pending = (i) => ({
   pending: true,
@@ -23,5 +24,5 @@ const pending = (i) => ({
   ],
 });
 
-const made = { 0: ep01, 1: ep02, 2: ep03, 3: ep04, 4: ep05, 5: ep06, 6: ep07, 7: ep08, 8: ep09, 9: ep10, 10: ep11, 11: ep12 };
+const made = { 0: ep01, 1: ep02, 2: ep03, 3: ep04, 4: ep05, 5: ep06, 6: ep07, 7: ep08, 8: ep09, 9: ep10, 10: ep11, 11: ep12, 12: ep13 };
 export const SCRIPTS = EPISODES.map((_, i) => made[i] || pending(i));
