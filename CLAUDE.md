@@ -17,6 +17,7 @@
 - 版面（index.html 最後的 CSS）：>1100px 筆電：`.split` 固定一個螢幕高，說明欄和工作區各自捲動（編輯器佔約 58%）；801–1100px 平板：說明欄變窄、設計稿與預覽上下排；≤800px 手機：單欄、整頁正常捲動。grid 欄要寫 `minmax(0, 1fr)`，不然長程式行會把頁面撐寬。
 - 練習類型（`src/practice.js`）：`ts`、`tw`、`react`、`vue`、`web`（串真 API 的一般網頁）、`code`（Node.js / Python，`src/runner.js` 用 Web Worker 真的執行，Python 用 Pyodide）。
 - 影片式教學（獨立頁面，自動播放、字幕、可開語音；教室的課程卡片有入口，在 `course-ui.js` 的 `VIDEO`）：播放器 `src/video-player.js`、樣式 `src/video.css`。Node.js：`node-video.html` + `src/nodevideo.js`（6 部，程式要能真的用 node + express 跑）。React：`react-video.html` + `src/reactvideo.js`（7 部，照六角 React 班課綱，程式要能真的用 Vite 建置）。要加新課：寫一個資料檔＋一個 html。
+- Tailwind v4 + React + TypeScript「I need this」首頁影片教學：`tailwind-react-video.html` + `src/tailwindvideo.js`（13 部、180 步；講解 `tw-react-1/2/3.js`，程式碼全在 `tw-react-code.js`）。照六角 Figma 設計稿（Design System 的顏色、字型、按鈕＋UI mockup 首頁），串六角 EC API（products／cart）。**改程式碼要重新驗證**：把每個 `file` 步驟的 `code` 依序寫進一個全新的 Vite react-ts 專案，每步跑 `tsc -b`、每部結束跑 `vite build`（`broken: true` 的步驟是刻意示範型別錯誤，會略過）。教學程式裡不能出現反引號與 `$`。圖片用使用者舊專案 `a50134/I-need-this` 的 `assets/images`，商品圖用該 repo 的 raw.githubusercontent 網址。
 - 專案衝刺（`src/workday.js`）：10 天、多張工單、突發事件、每日檢討。
 
 ## 驗證

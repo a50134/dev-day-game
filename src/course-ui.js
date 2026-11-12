@@ -38,7 +38,7 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
     }
   };
 
-  const VIDEO = { nd: 'node-video.html', rc: 'react-video.html' }; // 有影片式教學的課
+  const VIDEO = { nd: 'node-video.html', rc: 'react-video.html', tw: 'tailwind-react-video.html' }; // 有影片式教學的課
   return {
     classroom() {
       const acts = [];

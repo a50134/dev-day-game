@@ -27,6 +27,13 @@ export function startPlayer(EPISODES, name) {
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   });
 
+  // 固定在下方的字幕列會隨字數變高，頁面底部要留出同樣的空間，程式區塊才不會被蓋住
+  const fitBottom = () => {
+    const bar = document.querySelector('footer'), main = document.querySelector('main');
+    if (bar && main) main.style.paddingBottom = bar.offsetHeight + 16 + 'px';
+  };
+  window.addEventListener('resize', fitBottom);
+
   async function show(animate) {
     const mine = ++token;
     const alive = () => mine === token;
@@ -39,6 +46,7 @@ export function startPlayer(EPISODES, name) {
     $('count').textContent = `第 ${st + 1} 步／共 ${E.steps.length} 步`;
     $('bar').style.width = `${((st + 1) / E.steps.length) * 100}%`;
     $('say').textContent = step.say;
+    fitBottom();
     $('play').textContent = playing ? '⏸ 暫停' : '▶ 播放';
     $('next').textContent = st === E.steps.length - 1 ? (ep === EPISODES.length - 1 ? '🔁 從頭看' : '下一部 ⏭') : '下一步 ⏭';
     $('slide').hidden = !step.slide; $('ed').hidden = !step.file; $('term').hidden = !step.term; $('web').hidden = !step.web;
