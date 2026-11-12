@@ -160,7 +160,7 @@ export function startStory(root, cfg) {
       const hl = S.hl && i + 1 >= S.hl[0] && i + 1 <= S.hl[1];
       let body = i === ci ? paint(ln.slice(0, cj)) + '<span class="caret"></span>' + paint(ln.slice(cj)) : paint(ln);
       let tip = '';
-      if (S.err && S.err.line === i + 1) {
+      if (S.err && S.err.file === S.cur && S.err.line === i + 1) {
         const at = ln.indexOf(S.err.match);
         if (at >= 0) body = paint(ln.slice(0, at)) + `<span class="sq">${paint(S.err.match)}</span>` + paint(ln.slice(at + S.err.match.length));
         tip = `<div class="ln-tip">❌ ${esc(S.err.text)}</div>`;
@@ -268,7 +268,7 @@ export function startStory(root, cfg) {
     if (b.mood && !b.say) for (const [w, m] of Object.entries(b.mood)) setMood(w, m);
     if (b.file) { S.cur = b.file; S.pane = 'code'; S.mode = 'code'; applyMode(); }
     if (b.vp) { S.vp = b.vp; applyMode(); viewBox.querySelectorAll('.lp-frame').forEach(fitFrame); }
-    if (b.err !== undefined) { S.err = b.err; renderCode(); }
+    if (b.err !== undefined) { S.err = b.err ? { ...b.err, file: S.cur } : null; renderCode(); }
     if (b.term !== undefined) await runTerm(b.term, my);
     if (b.hl !== undefined) { S.hl = b.hl; if (b.hl) S.mode = 'code'; renderCode(); }
     if (b.float !== undefined) {
