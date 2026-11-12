@@ -1,0 +1,86 @@
+/* 講義頁：螢幕上好讀、列印成 PDF 也好看（A4） */
+:root { --fg: #1d1d1f; --bg: #fff6ef; --card: #fff; --line: #f2d9cc; --accent: #ff6f91; --g: #1d6617; --g80: #e3efe8; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.75 "Noto Sans TC", system-ui, sans-serif; }
+a { color: var(--g); }
+.tools { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 8px 14px; background: var(--card); border-bottom: 2px solid var(--line); font-size: 14px; }
+.tools button { font: inherit; padding: 4px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; cursor: pointer; min-height: 36px; }
+.tools button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+#doc { max-width: 900px; margin: 0 auto; padding: 16px 16px 60px; }
+code { font: .88em ui-monospace, Consolas, "Courier New", monospace; background: var(--g80); padding: 1px 5px; border-radius: 4px; word-break: break-word; }
+pre { margin: 0; }
+h1, h2, h3, h4 { line-height: 1.3; }
+h2 { font-size: 24px; margin: 0 0 8px; }
+h3 { font-size: 17px; margin: 22px 0 8px; padding-left: 10px; border-left: 4px solid var(--accent); }
+h4 { font-size: 14px; margin: 14px 0 4px; color: #666; }
+
+.cover { text-align: center; padding: 30px 10px 14px; }
+.cover .kicker { margin: 0; color: var(--g); font-weight: 700; letter-spacing: .1em; }
+.cover h1 { font: 700 34px/1.25 "Noto Serif TC", serif; margin: 10px 0; }
+.cover .sub { max-width: 640px; margin: 0 auto 14px; color: #555; }
+.meta { list-style: none; padding: 0; margin: 0 auto; max-width: 640px; text-align: left; font-size: 14px; }
+.meta li { padding: 6px 0; border-top: 1px dashed var(--line); }
+
+.toc, .ov, .ep { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px 18px 18px; margin: 18px 0; }
+.tlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 18px; }
+.tlist.extra { margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 6px; }
+.tlist a { display: flex; gap: 10px; padding: 3px 0; text-decoration: none; color: var(--fg); }
+.tlist a:hover { color: var(--accent); }
+.no { display: inline-block; min-width: 28px; margin-right: 8px; padding: 0 8px; border-radius: 999px; background: var(--g); color: #fff; font: 700 13px/22px system-ui; text-align: center; }
+.tlist .no { margin-right: 0; }
+h2 .no { font-size: 14px; }
+.tree { background: #1e1e1e; color: #ddd; border-radius: 10px; padding: 12px 14px; font: 13px/1.6 ui-monospace, Consolas, monospace; overflow-x: auto; white-space: pre; }
+.hint { background: var(--g80); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+.goal { margin: 0 0 4px; font-weight: 700; color: var(--g); }
+.points { margin: 0; padding-left: 22px; }
+.points li { margin: 4px 0; }
+.tip { margin: 8px 0 0; background: #fff8e1; border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+.cmds { background: #1e1e1e; color: #6ccf9c; border-radius: 10px; padding: 10px 14px; font: 13px/1.7 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+.cmds::first-line { color: #6ccf9c; }
+
+figure.file { margin: 12px 0 0; border: 1px solid #333; border-radius: 10px; overflow: hidden; }
+figure.file figcaption { display: flex; gap: 10px; align-items: center; background: #2d2d2d; color: #ccc; padding: 6px 10px; font: 12px ui-monospace, Consolas, monospace; }
+figure.file figcaption span { flex: 1; opacity: .6; }
+figure.file .copy { font: 12px system-ui; padding: 2px 10px; border: 1px solid #555; border-radius: 999px; background: #3a3a3a; color: #eee; cursor: pointer; }
+figure.file pre { background: #1e1e1e; color: #ddd; padding: 10px 12px; overflow-x: auto; font: 12.5px/1.6 ui-monospace, Consolas, monospace; max-height: none; }
+figure.file code { background: none; padding: 0; font: inherit; word-break: normal; }
+body.no-code .codes { display: none; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 4px 0; }
+th, td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+th { background: var(--g80); font-weight: 700; }
+td code { white-space: pre-wrap; }
+table.ts td:nth-child(2) code { font-size: .8em; }
+.sw { display: inline-block; width: 14px; height: 14px; margin-right: 6px; border: 1px solid #bbb; border-radius: 3px; vertical-align: -2px; }
+.end { text-align: center; color: #888; font-size: 13px; }
+
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  .tlist { grid-template-columns: 1fr; }
+  .cover h1 { font-size: 27px; }
+  table { display: block; overflow-x: auto; }
+  .toc, .ov, .ep { padding: 12px; }
+}
+
+/* 列印成 PDF：A4、淺色程式碼、每一部另起一頁 */
+@page { size: A4; margin: 14mm 13mm; }
+@media print {
+  body { background: #fff; font-size: 10.5pt; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tools, .copy { display: none !important; }
+  #doc { max-width: none; padding: 0; }
+  .toc, .ov, .ep { border: 0; border-radius: 0; padding: 0; margin: 0 0 8mm; background: none; }
+  .cover { padding: 30mm 0 10mm; break-after: page; }
+  .toc { break-after: page; }
+  .ep { break-before: page; }
+  .ov { break-before: avoid; }
+  h3 { break-after: avoid; }
+  table, figure.file.small, .tip { break-inside: avoid; }
+  tr { break-inside: avoid; }
+  figure.file { border-color: #bbb; }
+  figure.file figcaption { background: #eee; color: #333; }
+  figure.file pre { background: #f7f7f7; color: #111; font-size: 8.4pt; white-space: pre-wrap; word-break: break-all; }
+  .cmds { background: #f1f8f1; color: #14501a; }
+  .tree { background: #f7f7f7; color: #111; font-size: 8.5pt; }
+  code { background: #eef5ef; }
+  a { color: inherit; text-decoration: none; }
+}

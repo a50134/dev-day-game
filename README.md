@@ -34,4 +34,5 @@ python3 serve.py
 一步一步自動播放的入門教學（程式自己打出來＋字幕＋可開語音），教室的課程卡片有入口。
 - `node-video.html`：Node.js，6 部，從安裝做到排行榜 API 與前端串接。
 - `react-video.html`：React，7 部，從 Vite 建專案做到狀態、元件、串接 API、React Router、自訂 Hook。
-- `tailwind-react-video.html`：Tailwind v4 ＋ React ＋ TypeScript，13 部、180 步，照 Figma 設計稿「I need this」做出首頁（共用顏色／字型／按鈕、導覽列、輪播、熱賣商品串六角 API、購物車、頁尾）。
+- `tailwind-react-video.html`：Tailwind v4 ＋ React ＋ TypeScript，13 部、182 步（含 15 個概念動畫與 12 個真的在執行的即時預覽），照 Figma 設計稿「I need this」做出首頁（共用顏色／字型／按鈕、導覽列、輪播、熱賣商品串六角 API、購物車、頁尾）。
+- `tailwind-react-handout.html`：上面那份影片的講義（每部重點、完整程式碼、速查表、設計稿對照表），可列印成 PDF。

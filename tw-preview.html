@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>教學即時預覽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+<!-- 所有套件都用本機檔案（vendor/），不靠外部 CDN。react 的三個名字指到同一個檔案，才會只有一份 React -->
+<script type="importmap">
+{ "imports": {
+  "react": "./vendor/react-all.js",
+  "react/jsx-runtime": "./vendor/react-all.js",
+  "react-dom/client": "./vendor/react-all.js",
+  "axios": "./vendor/axios.js",
+  "sucrase": "./vendor/sucrase.js"
+} }
+</script>
+<script src="./vendor/tailwind-browser.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="./src/tw-preview.js"></script>
+</body>
+</html>

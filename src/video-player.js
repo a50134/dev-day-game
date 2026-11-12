@@ -1,7 +1,11 @@
 // 影片式教學的播放器（Node.js、React 共用）：程式自己打出來＋字幕＋可開語音。
 // 每一步：say 字幕；slide 大字卡；file + code 編輯器（code 是這一步完成後的整個檔案，新的行會被打出來）；
 // term 終端機（"$ " 開頭是你要打的指令，其他是電腦的回應）；web 瀏覽器畫面。
-export function startPlayer(EPISODES, name) {
+// 進階（選用，Tailwind 教學使用）：
+//   opts.anims   概念動畫表 { 名稱: (容器, { alive }) => 清除函式 }；step.anim 指定名稱，找不到就退回 step.slide。
+//   opts.preview 即時預覽頁網址；web 步驟會把「到這一步為止的所有檔案」送進去真的執行（web.live === false 則不用）。
+//                web.live 可寫 { vp: 'mobile', modes: [['ok','正常'],['slow','讀取中']] }。
+export function startPlayer(EPISODES, name, opts = {}) {
   const KEY = 'ddg-' + name;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -9,6 +13,7 @@ export function startPlayer(EPISODES, name) {
   const saved = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })();
   let ep = Math.min(saved.ep || 0, EPISODES.length - 1), st = Math.min(saved.st || 0, EPISODES[ep].steps.length - 1);
   let playing = false, voice = false, speed = 1, token = 0;
+  let stopAnim = null, stopLive = null; // 離開這一步時，要把動畫與預覽收掉
 
   // 這一步之前，同一個檔案最後的內容（跨部也算，因為 server.js 是一路改下去的）
   const before = (file) => {
@@ -34,6 +39,77 @@ export function startPlayer(EPISODES, name) {
   };
   window.addEventListener('resize', fitBottom);
 
+  // 到 (e, s) 這一步為止，每個檔案的最新內容
+  const filesUpTo = (e, s) => {
+    const files = {};
+    for (let i = 0; i <= e; i++) {
+      const steps = EPISODES[i].steps;
+      for (let j = 0; j < steps.length && (i < e || j <= s); j++) if (steps[j].file) files[steps[j].file] = steps[j].code;
+    }
+    return files;
+  };
+
+  // 即時預覽：iframe 裡真的編譯並執行教學的程式碼
+  function mountLive(step) {
+    const page = $('page');
+    const cfg = typeof step.web.live === 'object' ? step.web.live : {};
+    let vp = cfg.vp || (window.innerWidth < 700 ? 'mobile' : 'desktop');
+    let mode = cfg.modes ? cfg.modes[0][0] : 'ok';
+    const files = filesUpTo(ep, st);
+    page.classList.add('is-live');
+    page.innerHTML = `<div class="live-bar"><button data-vp="desktop">🖥️ 桌面</button><button data-vp="mobile">📱 手機</button>${
+      (cfg.modes || []).map(([m, label]) => `<button data-mode="${m}">${label}</button>`).join('')}<button data-reload="1">↻ 重新載入</button></div><div class="live-view"></div><p class="live-note">👆 這是真的程式碼跑出來的畫面，可以點、可以滑。</p>`;
+    const view = page.querySelector('.live-view');
+    let frame = null, timer = 0, onMsg = null;
+    const mark = () => {
+      page.querySelectorAll('[data-vp]').forEach((b) => b.classList.toggle('on', b.dataset.vp === vp));
+      page.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
+    };
+    const fit = () => {
+      if (!frame) return;
+      const W = vp === 'desktop' ? 1280 : 390, avail = view.clientWidth || 600, H = 380;
+      const k = Math.min(1, avail / W);
+      Object.assign(frame.style, { width: W + 'px', height: H / k + 'px', transform: 'scale(' + k + ')', marginLeft: Math.max(0, (avail - W * k) / 2) + 'px' });
+      view.style.height = H + 'px';
+    };
+    const load = () => {
+      clearTimeout(timer);
+      if (onMsg) window.removeEventListener('message', onMsg);
+      view.innerHTML = '<p class="live-wait">載入預覽中…</p>';
+      frame = document.createElement('iframe');
+      frame.className = 'live-frame'; frame.title = '即時預覽'; frame.src = opts.preview;
+      let ready = false;
+      onMsg = (ev) => {
+        if (ev.source !== frame.contentWindow || ev.data?.type !== 'preview-ready') return;
+        ready = true; view.querySelector('.live-wait')?.remove();
+        frame.contentWindow.postMessage({ type: 'render', files, mode }, '*');
+      };
+      window.addEventListener('message', onMsg);
+      view.append(frame); fit(); mark();
+      timer = setTimeout(() => { // 載不到（例如沒有網路）就退回靜態示意圖
+        if (ready) return;
+        page.classList.remove('is-live'); page.innerHTML = step.web.html + '<p class="live-note">（即時預覽載入失敗，這裡是示意圖）</p>';
+      }, 9000);
+    };
+    page.onclick = (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.vp) { vp = b.dataset.vp; fit(); mark(); }
+      else if (b.dataset.mode) { mode = b.dataset.mode; load(); }
+      else if (b.dataset.reload) load();
+    };
+    const onResize = () => fit();
+    window.addEventListener('resize', onResize);
+    load();
+    return () => { clearTimeout(timer); window.removeEventListener('message', onMsg); window.removeEventListener('resize', onResize); page.onclick = null; };
+  }
+
+  // 概念動畫的容器（頁面上沒有就建立）
+  const animPane = () => {
+    let el = $('anim');
+    if (!el) { el = document.createElement('div'); el.id = 'anim'; el.className = 'pane anim-pane'; el.hidden = true; $('screen').prepend(el); }
+    return el;
+  };
+
   async function show(animate) {
     const mine = ++token;
     const alive = () => mine === token;
@@ -49,9 +125,20 @@ export function startPlayer(EPISODES, name) {
     fitBottom();
     $('play').textContent = playing ? '⏸ 暫停' : '▶ 播放';
     $('next').textContent = st === E.steps.length - 1 ? (ep === EPISODES.length - 1 ? '🔁 從頭看' : '下一部 ⏭') : '下一步 ⏭';
-    $('slide').hidden = !step.slide; $('ed').hidden = !step.file; $('term').hidden = !step.term; $('web').hidden = !step.web;
+    if (stopAnim) { try { stopAnim(); } catch {} stopAnim = null; }
+    if (stopLive) { stopLive(); stopLive = null; }
+    const useAnim = !!(step.anim && opts.anims?.[step.anim]);
+    const pane = animPane();
+    pane.hidden = !useAnim;
+    $('slide').hidden = useAnim || !step.slide; $('ed').hidden = !step.file; $('term').hidden = !step.term; $('web').hidden = !step.web;
     if (step.slide) $('slide').innerHTML = step.slide.map((l, i) => `<p class="${i ? '' : 'big'}">${esc(l)}</p>`).join('');
-    if (step.web) { $('url').textContent = step.web.url; $('page').innerHTML = step.web.html; }
+    if (useAnim) { pane.innerHTML = ''; stopAnim = opts.anims[step.anim](pane, { alive, speed }); }
+    if (step.web) {
+      $('url').textContent = step.web.url;
+      $('page').classList.remove('is-live'); $('page').onclick = null;
+      if (opts.preview && step.web.live !== false) stopLive = mountLive(step);
+      else $('page').innerHTML = step.web.html;
+    }
 
     const talk = speak(step.say);
     const wait = (ms) => (animate ? sleep(ms / speed) : Promise.resolve());
