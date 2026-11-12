@@ -5,7 +5,7 @@ export const R = (text, mood = 'normal', x) => ({ say: 'rookie', text, mood, ...
 export const chapter = (title, card) => ({ chapter: title, ...(card ? { card, ms: 2300 } : {}) });
 export const type = (file, text, o) => ({ code: { file, text, ...o } });               // 新人打字（o.slow 小修改、o.bulk 大量重複內容快速帶過、o.broken 刻意做錯的版本、o.noCheck 中間狀態不跑型別檢查）
 export const open = (file) => ({ file });                                              // 切換到某個檔案
-export const view = (ms = 1800, mode) => ({ view: { ms, mode } });                      // 讓預覽真的跑一次
+export const view = (ms = 1800, mode, scroll) => ({ view: { ms, mode, scroll } }); // scroll：畫好後捲到這個標題文字                      // 讓預覽真的跑一次
 export const hl = (a, b = a) => ({ hl: [a, b] });
 export const unhl = { hl: null };
 export const float = (html) => ({ float: html });

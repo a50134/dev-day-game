@@ -81,5 +81,11 @@ async function render({ files, mode }) {
   requestAnimationFrame(() => setTimeout(() => parent.postMessage({ type: 'preview-rendered' }, '*'), 350));
 }
 
-window.addEventListener('message', (e) => { if (e.data?.type === 'render') render(e.data); });
+window.addEventListener('message', (e) => {
+  if (e.data?.type === 'render') render(e.data);
+  if (e.data?.type === 'scroll-to') { // 動畫版：捲到某個標題（導覽列是固定的，所以多留一段空間）
+    const el = [...document.querySelectorAll('h1,h2,h3')].find((h) => h.textContent.trim() === e.data.text);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 110 });
+  }
+});
 parent.postMessage({ type: 'preview-ready' }, '*');

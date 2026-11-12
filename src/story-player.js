@@ -219,11 +219,14 @@ export function startStory(root, cfg) {
     const f = document.createElement('iframe'); f.className = 'lp-frame'; f.src = preview; f.title = '預覽';
     fitFrame(f); viewBox.append(f);
     const old = [...viewBox.querySelectorAll('.lp-frame')].filter((x) => x !== f);
-    const { files, mode } = S.view;
+    const { files, mode, scroll } = S.view;
     const onMsg = (ev) => {
       if (ev.source !== f.contentWindow) return;
       if (ev.data?.type === 'preview-ready') f.contentWindow.postMessage({ type: 'render', files, mode }, '*');
-      if (ev.data?.type === 'preview-rendered') { window.removeEventListener('message', onMsg); f.style.opacity = 1; setTimeout(() => old.forEach((o) => o.remove()), 300); }
+      if (ev.data?.type === 'preview-rendered') {
+        window.removeEventListener('message', onMsg); f.style.opacity = 1; setTimeout(() => old.forEach((o) => o.remove()), 300);
+        if (scroll) setTimeout(() => f.contentWindow?.postMessage({ type: 'scroll-to', text: scroll }, '*'), 900); // 等 API 資料出來再捲
+      }
     };
     window.addEventListener('message', onMsg);
     setTimeout(() => { f.style.opacity = 1; old.forEach((o) => o.remove()); }, 6000);
@@ -283,7 +286,7 @@ export function startStory(root, cfg) {
       await wait(800, my); // 打完停一下，讓人看清楚
     }
     if (b.view) {
-      S.view = { files: { ...S.files }, mode: b.view.mode || 'ok' }; S.mode = 'view'; applyMode();
+      S.view = { files: { ...S.files }, mode: b.view.mode || 'ok', scroll: b.view.scroll }; S.mode = 'view'; applyMode();
       if (!fast) loadView(); else S.pendingView = true;
       if (!fast) await wait(b.view.ms || 1500, my);
     }
