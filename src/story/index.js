@@ -5,6 +5,7 @@ import ep02 from './ep02.js';
 import ep03 from './ep03.js';
 import ep04 from './ep04.js';
 import ep05 from './ep05.js';
+import ep06 from './ep06.js';
 
 const pending = (i) => ({
   pending: true,
@@ -16,5 +17,5 @@ const pending = (i) => ({
   ],
 });
 
-const made = { 0: ep01, 1: ep02, 2: ep03, 3: ep04, 4: ep05 };
+const made = { 0: ep01, 1: ep02, 2: ep03, 3: ep04, 4: ep05, 5: ep06 };
 export const SCRIPTS = EPISODES.map((_, i) => made[i] || pending(i));
