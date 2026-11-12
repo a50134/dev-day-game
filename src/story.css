@@ -137,3 +137,27 @@ button { font: inherit; cursor: pointer; }
 .sf-bar .st-btn { height: 30px; min-width: 0; font-size: 12px; }
 .sf-pre { flex: 1; min-height: 0; margin: 0; padding: 8px 0; overflow: auto; color: #ddd; font: 13.5px/1.65 ui-monospace, Consolas, "Courier New", monospace; }
 .sf-pre .ln::before { color: #777; }
+
+/* 終端機 */
+.lp-term { display: none; position: absolute; inset: 0; padding: 10px 12px; overflow: auto; background: #101418; color: #d6e2ea; font: 12.5px/1.65 ui-monospace, Consolas, "Courier New", monospace; }
+.lp-code[data-pane=term] pre { display: none; }
+.lp-code[data-pane=term] .lp-term { display: block; }
+.tl { white-space: pre-wrap; word-break: break-all; }
+.tl.cmd { color: #6ccf9c; } .tl.cmd span { color: #ffd166; }
+.tl.out { color: #cdd9e2; } .tl.err { color: #ff8a8a; }
+.lp-term .caret { background: #6ccf9c; }
+/* TypeScript 錯誤：紅色波浪線＋訊息 */
+.sq { text-decoration: underline wavy #ff5c5c; text-underline-offset: 3px; }
+.ln.bad { background: rgba(255, 92, 92, .12); }
+.ln-tip { margin: 0 8px 2px 36px; padding: 4px 8px; border-radius: 6px; background: #3b1d1d; color: #ffb4b4; font: 11.5px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-word; animation: pop .3s; }
+.lp-bar .vp { margin-left: 0; }
+/* 目錄 */
+.st-menu { position: absolute; inset: 0; z-index: 11; display: none; flex-direction: column; gap: 8px; padding: 12px; background: rgba(255, 246, 239, .98); overflow: auto; }
+.st-menu.show { display: flex; }
+.st-menu h3 { margin: 0; font-size: 17px; }
+.mn-list { display: grid; gap: 6px; }
+.mn { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border: 2px solid var(--line); border-radius: 14px; background: #fff; color: var(--fg); text-decoration: none; font-size: 14.5px; }
+.mn b { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--g); color: #fff; display: grid; place-items: center; font-size: 13px; }
+.mn.on { border-color: var(--accent); background: #fff0f3; font-weight: 700; }
+.st-card .nx { color: var(--fg); }
+.st-card .cd { color: var(--accent); font-weight: 700; }

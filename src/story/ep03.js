@@ -1,8 +1,5 @@
-// 動畫版樣品：第 3 部「共用顏色」── 老師 ＋ 新人。
-// 演法：新人先試 → 做錯（顏色沒出現）→ 老師用問題點醒 → 新人自己找到原因 → 修好。
-// 程式碼和影片版第 3 部一致（最後的 CSS 就是 tw-react-code.js 的 CSS_2、色票畫面照 APP_3 的做法）。
-import { startStory } from './story-player.js';
-import * as C from './tw-react-code.js';
+// 第 3 部「共用顏色」：新人先試 → 做錯（顏色變數沒寫 color 開頭）→ 老師用問題點醒 → 新人自己找到原因。
+import * as C from '../tw-react-code.js';
 
 const CSS_START = '@import "tailwindcss";\n';
 const css = (name, hex) => `@import "tailwindcss";\n\n@theme {\n  ${name}: ${hex};\n}\n`;
@@ -92,7 +89,7 @@ const beats = [
   { float: null },
   { say: 'teacher', mood: 'happy', text: '對！所以我們把顏色「取名字」，只放在一個地方。', fx: '💡' },
   { say: 'teacher', mood: 'happy', text: '這個地方叫 `@theme`。來，打開 `src/index.css`。' },
-  { code: { file: 'src/index.css', text: CSS_START, speed: 30 } },
+  { code: { file: 'src/index.css', text: CSS_START } },
   { hl: [1, 1] },
   { say: 'teacher', mood: 'normal', text: '第一行是上次裝 Tailwind 時寫的，它把 Tailwind 整個叫進來。' },
   { hl: null },
@@ -101,9 +98,9 @@ const beats = [
   { chapter: '新人先試' },
   { say: 'teacher', mood: 'happy', text: '換你囉！把主色「深綠」取名叫 `primary-dark`，試試看～' },
   { say: 'rookie', mood: 'happy', text: '沒問題！看我的～😎', jump: 'rookie' },
-  { code: { file: 'src/index.css', text: CSS_TRY, speed: 34 } },
+  { code: { file: 'src/index.css', text: CSS_TRY } },
   { say: 'rookie', mood: 'happy', text: '再到 `App.tsx` 把它用上去！' },
-  { code: { file: 'src/App.tsx', text: APP_TRY, speed: 20 } },
+  { code: { file: 'src/App.tsx', text: APP_TRY } },
   { view: true },
   { fx: 'shake' },
   { say: 'rookie', mood: 'surprised', text: '咦？？沒有顏色欸…我哪裡打錯了嗎？', fx: '❗' },
@@ -120,22 +117,22 @@ const beats = [
 
   // ── 修好 ──
   { chapter: '修好它' },
-  { code: { file: 'src/index.css', text: CSS_FIX, speed: 70 } },
+  { code: { file: 'src/index.css', text: CSS_FIX, slow: true } },
   { view: true, ms: 2000 },
   { say: 'rookie', mood: 'happy', text: '哇！深綠色出現了！！', jump: 'rookie', fx: '✨' },
   { say: 'teacher', mood: 'happy', text: '耶～現在 Tailwind 會自動長出一整組 class：`bg-primary-dark`、`text-primary-dark`、`border-primary-dark`…' },
   { say: 'rookie', mood: 'normal', text: '真的嗎？我來試試！' },
-  { code: { file: 'src/App.tsx', text: APP_USES, speed: 18 } },
+  { code: { file: 'src/App.tsx', text: APP_USES } },
   { view: true },
   { say: 'rookie', mood: 'happy', text: '同一個名字，背景、文字、框線都能用！' },
   { say: 'teacher', mood: 'normal', text: '那設計師說「綠色再淺一點」的時候呢？' },
   { file: 'src/index.css' },
   { say: 'rookie', mood: 'happy', text: '我只要改 `@theme` 這一個地方～' },
-  { code: { file: 'src/index.css', text: CSS_LIGHT, speed: 80 } },
+  { code: { file: 'src/index.css', text: CSS_LIGHT, slow: true } },
   { view: true, ms: 2200 },
   { say: 'rookie', mood: 'surprised', text: '三個地方，一起變淺了！！', fx: '✨' },
   { say: 'teacher', mood: 'happy', text: '對吧～這就是「取名字」的威力。先改回深綠吧！' },
-  { code: { file: 'src/index.css', text: CSS_FIX, speed: 80 } },
+  { code: { file: 'src/index.css', text: CSS_FIX, slow: true } },
   { view: true, ms: 1200 },
 
   // ── 放進全部顏色 ──
@@ -144,16 +141,16 @@ const beats = [
   { float: FIGMA },
   { say: 'rookie', mood: 'normal', text: '主色三個、中性色四個，再加一個背景綠…我來！' },
   { float: null },
-  { code: { file: 'src/index.css', text: C.CSS_2, speed: 11 } },
+  { code: { file: 'src/index.css', text: C.CSS_2 } },
   { hl: [10, 13] },
   { say: 'teacher', mood: 'happy', text: '中性色我取名 `n-20`、`n-40`…短一點好打。白色不用放，Tailwind 內建 `white`。' },
   { hl: null },
-  { code: { file: 'src/App.tsx', text: APP_SWATCH, speed: 10 } },
+  { code: { file: 'src/App.tsx', text: APP_SWATCH } },
   { view: true, ms: 2000 },
   { say: 'rookie', mood: 'surprised', text: '哇～跟設計稿的色票一模一樣！', fx: '✨', jump: 'rookie' },
   { say: 'rookie', mood: 'normal', text: '對了老師，設計稿的文字框有點「半透明」，那種怎麼寫？' },
   { say: 'teacher', mood: 'happy', text: '在顏色後面加斜線和數字！`bg-n-60/40` 就是 n-60 的灰色、`40%` 不透明度。' },
-  { code: { file: 'src/App.tsx', text: APP_ALPHA, speed: 12 } },
+  { code: { file: 'src/App.tsx', text: APP_ALPHA } },
   { view: true, ms: 2200 },
   { say: 'rookie', mood: 'happy', text: '透出底下的淺綠色了！好可愛～' },
 
@@ -169,11 +166,8 @@ const beats = [
   { wait: 1800 },
 ];
 
-startStory(document.getElementById('story'), {
-  title: '第 3 部　共用顏色',
-  cast: { teacher: { role: 'teacher', name: 'Lily 老師' }, rookie: { role: 'me', name: '新人' } },
+export default {
+  title: '共用顏色',
+  endSub: '下一部：共用字型與文字樣式',
   beats,
-  backHref: 'tailwind-react-video.html',
-  endTitle: '第 3 部完成！',
-  endSub: '這是動畫版的樣品。下一部：共用字型與文字樣式',
-});
+};

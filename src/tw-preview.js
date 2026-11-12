@@ -58,6 +58,10 @@ async function render({ files, mode }) {
     installMock(mode);
     document.querySelectorAll('style[type="text/tailwindcss"]').forEach((s) => s.remove());
     const css = files['src/index.css'];
+    if (css && /@import\s+["']tailwindcss["']/.test(css) && !window.__tw) { // CSS 有 @import "tailwindcss" 才有 Tailwind
+      await new Promise((ok, no) => { const s = document.createElement('script'); s.src = new URL('../vendor/tailwind-browser.js', import.meta.url).href; s.onload = ok; s.onerror = no; document.head.append(s); });
+      window.__tw = true;
+    }
     if (css && css.trim()) {
       const style = document.createElement('style');
       style.type = 'text/tailwindcss';
@@ -66,7 +70,12 @@ async function render({ files, mode }) {
     }
     const app = files['src/App.tsx'] ? await build(files, 'src/App.tsx') : null;
     if (!app) return showError('這一步還沒有 App.tsx');
-    createRoot(root).render(React.createElement(app.default));
+    class Boundary extends React.Component { // 程式在畫面上出錯時，顯示錯誤，而不是整頁空白
+      constructor(props) { super(props); this.state = { err: null }; }
+      static getDerivedStateFromError(err) { return { err }; }
+      render() { return this.state.err ? React.createElement('pre', { style: { margin: 0, padding: 12, color: '#b91c1c', font: '12px/1.5 ui-monospace,monospace', whiteSpace: 'pre-wrap' } }, '預覽失敗：' + this.state.err.message) : this.props.children; }
+    }
+    createRoot(root).render(React.createElement(Boundary, null, React.createElement(app.default)));
   } catch (e) { showError(e); }
   // 畫面畫好了（等 Tailwind 產生完 CSS）就通知外面，讓動畫版可以平順地換上新畫面
   requestAnimationFrame(() => setTimeout(() => parent.postMessage({ type: 'preview-rendered' }, '*'), 350));
