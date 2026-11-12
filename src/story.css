@@ -1,0 +1,120 @@
+/* 劇場式教學動畫（老師＋新人）：可愛、無聲、自己從頭演到尾 */
+:root { --bg: #fff6ef; --fg: #3a2f2f; --card: #fff; --line: #f2d9cc; --accent: #ff6f91; --g: #1d6617; --mint: #e3f4ea; --peach: #ffe9dc; --sun: #fff3c4; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 15px/1.6 "Noto Sans TC", system-ui, sans-serif; overflow: hidden; }
+button { font: inherit; cursor: pointer; }
+
+.st { position: relative; height: 100dvh; display: flex; flex-direction: column; user-select: none;
+  background: radial-gradient(circle at 12% 8%, #ffe2ea 0 70px, transparent 72px), radial-gradient(circle at 92% 20%, #e1f2ff 0 56px, transparent 58px), linear-gradient(#fff6ef, #ffeede); }
+.st-top { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 10px; padding-top: max(6px, env(safe-area-inset-top)); }
+.st-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 14px; }
+.st-title small { font-weight: 400; opacity: .7; margin-left: 6px; }
+.st-btn { min-width: 36px; height: 34px; padding: 0 10px; border: 2px solid var(--line); border-radius: 999px; background: var(--card); color: var(--fg); font-size: 13px; }
+.st-btn:active { transform: scale(.94); }
+.st-back { font-size: 12px; color: var(--g); text-decoration: none; padding: 0 4px; }
+
+.st-scene { position: relative; flex: 1; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 6px; padding: 0 10px 4px; }
+
+/* 角色：頭像＋名字＋對話泡泡 */
+.st-chr { position: relative; display: flex; align-items: flex-end; gap: 8px; min-height: 92px; }
+.st-chr.rookie { flex-direction: row-reverse; }
+.st-av { flex: none; position: relative; width: 84px; }
+.st-av .face { width: 84px; height: 84px; background: #fff0e6; border: 3px solid var(--line); border-radius: 50%; overflow: hidden; animation: bob 2.6s ease-in-out infinite; transform-origin: 50% 100%; }
+.st-av .face svg { width: 100%; height: 100%; display: block; }
+.st-av .nm { display: block; text-align: center; font-size: 11px; font-weight: 700; margin-top: 2px; }
+.st-chr.talking .face { animation: talk .45s ease-in-out infinite; }
+.st-chr.squash .face { animation: squash .45s ease-out 1; }
+.st-chr.jump .face { animation: jump .7s ease-out 1; }
+.st-chr.dim { opacity: .55; filter: saturate(.7); transition: opacity .3s; }
+.bub { position: relative; flex: 1; min-width: 0; min-height: 56px; padding: 8px 12px; border-radius: 18px; border: 2px solid var(--line); background: var(--card); line-height: 1.55; font-size: 14.5px; opacity: 0; transform: scale(.85); transform-origin: left bottom; transition: opacity .2s; }
+.st-chr.teacher .bub { background: var(--mint); border-color: #bfe5cd; }
+.st-chr.rookie .bub { background: var(--sun); border-color: #f1dc8c; transform-origin: right bottom; }
+.bub.show { opacity: 1; transform: none; }
+.bub.pop { animation: pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+.bub::before { content: ""; position: absolute; bottom: 16px; width: 12px; height: 12px; background: inherit; border: inherit; border-width: 0 0 2px 2px; transform: rotate(45deg); }
+.st-chr.teacher .bub::before { left: -8px; }
+.st-chr.rookie .bub::before { right: -8px; transform: rotate(-135deg); }
+.bub .c { opacity: 0; }
+.bub .c.on { opacity: 1; }
+.bub code { font: .88em ui-monospace, Consolas, monospace; }
+.bub code .c.on { background: rgba(0, 0, 0, .07); }
+.bub b { color: #c2410c; }
+.st-chr.teacher .bub b { color: #14803c; }
+
+/* 筆電：左（上）程式碼、右（下）預覽 */
+.st-laptop { position: relative; display: flex; flex-direction: column; min-height: 0; border-radius: 14px; background: #2b2b2b; border: 3px solid #555; box-shadow: 0 6px 0 #d9b99b, 0 10px 18px rgba(0, 0, 0, .15); overflow: hidden; }
+.st-laptop.shake { animation: shake .5s; }
+.lp-bar { flex: none; display: flex; align-items: center; gap: 5px; padding: 5px 8px; background: #3a3a3a; color: #ccc; font: 11px ui-monospace, Consolas, monospace; }
+.lp-bar i { width: 9px; height: 9px; border-radius: 50%; background: #ff6b6b; } .lp-bar i:nth-child(2) { background: #ffd166; } .lp-bar i:nth-child(3) { background: #6ccf9c; }
+.lp-bar .fn { margin-left: 8px; }
+.lp-bar .vw { margin-left: auto; opacity: .7; }
+.lp-body { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+.lp-code { position: relative; min-height: 0; overflow: hidden; background: #1e1e1e; color: #ddd; }
+.lp-code pre { margin: 0; padding: 8px 0; font: 11.5px/1.6 ui-monospace, Consolas, "Courier New", monospace; transition: transform .25s; }
+.ln { white-space: pre; padding: 0 10px 0 36px; position: relative; min-height: 1.6em; }
+.ln::before { content: attr(data-n); position: absolute; left: 0; width: 26px; text-align: right; color: #666; }
+.ln.hl { background: rgba(255, 214, 102, .2); box-shadow: inset 3px 0 #ffd166; }
+.ln.hl::after { content: "👈"; position: absolute; right: 6px; animation: nudge .8s ease-in-out infinite; }
+.caret { display: inline-block; width: 2px; height: 1.15em; background: #ffd166; vertical-align: text-bottom; animation: blink 1s steps(2) infinite; }
+.t-c { color: #7f8c8d; } .t-s { color: #a5e075; } .t-a { color: #c792ea; } .t-k { color: #ff8fa3; } .t-v { color: #7fdbff; } .t-n { color: #f5a97f; } .t-g { color: #82aaff; }
+.lp-view { position: relative; min-height: 0; overflow: hidden; background: #fff; border-top: 2px solid #444; }
+.lp-view .empty { position: absolute; inset: 0; display: grid; place-items: center; color: #aaa; font-size: 13px; }
+.lp-frame { position: absolute; left: 0; top: 0; border: 0; background: #fff; transform-origin: 0 0; opacity: 0; transition: opacity .25s; }
+
+/* 浮動卡片（設計稿色票、整理清單）與標題卡 */
+.st-float { position: absolute; left: 50%; top: 48%; z-index: 6; width: min(92%, 420px); transform: translate(-50%, -50%) scale(.85); opacity: 0; pointer-events: none; background: var(--card); border: 3px solid var(--line); border-radius: 18px; padding: 12px 14px; box-shadow: 0 10px 24px rgba(0, 0, 0, .18); transition: all .3s cubic-bezier(.3, 1.4, .5, 1); }
+.st-float.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.st-float h5 { margin: 0 0 6px; font-size: 13px; }
+.sw-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.sw { width: 74px; padding: 6px 4px; border-radius: 8px; font-size: 10.5px; text-align: center; border: 1px solid rgba(0, 0, 0, .12); animation: pop .4s backwards; }
+.sw small { display: block; opacity: .75; }
+.ck { margin: 0; padding: 0; list-style: none; } .ck li { padding: 4px 0; font-size: 14px; animation: pop .45s backwards; }
+.st-card { position: absolute; inset: 0; z-index: 9; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 20px; background: rgba(255, 246, 239, .96); }
+.st-card.show { display: flex; animation: fade .4s; }
+.st-card h2 { margin: 0; font: 700 30px/1.3 "Noto Serif TC", serif; }
+.st-card p { margin: 0; color: #7a6a6a; }
+.st-card .big { font-size: 52px; animation: bob 1.6s ease-in-out infinite; }
+.st-card .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.st-card .st-btn.p { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.st-paused { position: absolute; inset: 0; z-index: 8; display: none; place-items: center; background: rgba(255, 246, 239, .55); font-size: 20px; font-weight: 700; }
+.st-paused.show { display: grid; }
+
+/* 進度條：章節 */
+.st-prog { flex: none; display: flex; gap: 4px; padding: 4px 10px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+.seg { flex: 1; min-width: 0; padding: 4px 0 0; background: none; border: 0; text-align: left; font-size: 10.5px; color: #8a7a7a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seg i { display: block; height: 6px; margin-bottom: 3px; border-radius: 3px; background: var(--line); position: relative; overflow: hidden; }
+.seg i b { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); border-radius: 3px; }
+.seg.on { color: var(--fg); font-weight: 700; }
+
+/* 特效：浮起的小表情、彩帶 */
+.fx { position: absolute; z-index: 7; font-size: 26px; pointer-events: none; animation: floatup 1.3s ease-out forwards; }
+.fx.s { font-size: 18px; }
+.confetti { position: absolute; top: -12px; z-index: 7; width: 9px; height: 14px; border-radius: 2px; pointer-events: none; animation: fall linear forwards; }
+
+@keyframes tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px) rotate(2deg); } }
+.st-chr.typing .face { animation: tap .28s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-3px); } }
+@keyframes talk { 0%, 100% { transform: scale(1) rotate(0); } 30% { transform: scale(1.06, .95) rotate(-2deg); } 65% { transform: scale(.97, 1.05) rotate(2deg); } }
+@keyframes squash { 0% { transform: scale(1.18, .8); } 60% { transform: scale(.94, 1.08); } 100% { transform: none; } }
+@keyframes jump { 0% { transform: none; } 30% { transform: translateY(-26px) scale(.95, 1.08); } 60% { transform: translateY(0) scale(1.12, .88); } 100% { transform: none; } }
+@keyframes pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-7px) rotate(-.6deg); } 40% { transform: translateX(7px) rotate(.6deg); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes nudge { 50% { transform: translateX(-4px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes floatup { 0% { transform: translateY(0) scale(.5); opacity: 0; } 20% { opacity: 1; transform: translateY(-10px) scale(1.15); } 100% { transform: translateY(-64px) scale(1); opacity: 0; } }
+@keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+
+/* 寬螢幕：老師在左、筆電在中間、新人在右 */
+@media (min-width: 900px) {
+  .st-scene { grid-template-rows: none; grid-template-columns: 250px minmax(0, 1fr) 250px; gap: 12px; padding-bottom: 8px; }
+  .st-chr, .st-chr.rookie { flex-direction: column-reverse; justify-content: flex-end; align-items: center; gap: 12px; }
+  .st-chr .bub { flex: none; width: 100%; }
+  .st-chr.teacher .bub::before, .st-chr.rookie .bub::before { left: 50%; right: auto; bottom: -8px; transform: translateX(-50%) rotate(-45deg); border-width: 0 2px 2px 0; transform: translateX(-50%) rotate(45deg); }
+  .st-av, .st-av .face { width: 130px; height: 130px; }
+  .lp-body { grid-template-rows: none; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lp-view { border-top: 0; border-left: 2px solid #444; }
+  .lp-code pre { font-size: 12.5px; }
+  .st-chr { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .st-av .face { animation: none !important; } }
