@@ -49,20 +49,26 @@ const paint = (line) => {
 export function startStory(root, cfg) {
   const { title, sub = '', cast, beats, preview = 'tw-preview.html', backHref = '' } = cfg;
   const q = new URLSearchParams(location.search);
-  let speed = +q.get('speed') || 1;
+  const KEY = 'ddg-story-settings';
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })();
+  const TYPE = { slow: 4, mid: 3, fast: 1.5 }, TYPE_LABEL = { slow: '慢', mid: '中', fast: '快' }; // 打字每個字的時間倍率
+  let speed = +q.get('speed') || saved.speed || 1;
+  let typing = TYPE[q.get('typing')] ? q.get('typing') : TYPE[saved.typing] ? saved.typing : 'mid';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ speed, typing })); } catch {} };
   let paused = false, fast = false, token = 0, measure = false, acc = 0;
   const S = {};
 
   // ── 畫面骨架 ──
   root.innerHTML = `<div class="st">
     <div class="st-top"><div class="st-title">${esc(title)}<small></small></div>${backHref ? `<a class="st-back" href="${backHref}">← 回影片版</a>` : ''}
-      <button class="st-btn" data-a="speed">1×</button><button class="st-btn" data-a="play">⏸</button><button class="st-btn" data-a="replay">↻</button></div>
+      <button class="st-btn" data-a="speed" title="整體速度">⏱ 1×</button><button class="st-btn" data-a="typing" title="打字速度">⌨️ 中</button><button class="st-btn" data-a="play">⏸</button><button class="st-btn" data-a="replay">↻</button></div>
     <div class="st-scene">
       <div class="st-chr teacher"><div class="st-av"><div class="face"></div><span class="nm"></span></div><div class="bub"></div></div>
-      <div class="st-laptop"><div class="lp-bar"><i></i><i></i><i></i><span class="fn">（還沒有檔案）</span><span class="vw">🌐 預覽</span></div>
+      <div class="st-laptop"><div class="lp-bar"><i></i><i></i><i></i><button class="tab fn" data-a="pin-code" title="點一下：固定放大程式碼">（還沒有檔案）</button><button class="tab vw" data-a="pin-view" title="點一下：固定放大預覽">🌐 預覽</button><button class="tab zoom" data-a="full" title="暫停，全螢幕看完整程式碼">🔍</button></div>
         <div class="lp-body"><div class="lp-code"><pre></pre></div><div class="lp-view"><div class="empty">電腦螢幕還是黑的～</div></div></div></div>
       <div class="st-chr rookie"><div class="st-av"><div class="face"></div><span class="nm"></span></div><div class="bub"></div></div>
       <div class="st-float"></div><div class="st-card"></div><div class="st-paused">⏸ 暫停中　點一下繼續</div>
+      <div class="st-full"><div class="sf-bar"><span class="sf-tabs"></span><button class="st-btn" data-a="copy">複製</button><button class="st-btn" data-a="close-full">✕ 關閉</button></div><pre class="sf-pre"></pre></div>
     </div><div class="st-prog"></div></div>`;
   const $ = (sel) => root.querySelector(sel);
   const scene = $('.st-scene'), laptop = $('.st-laptop'), codeBox = $('.lp-code'), pre = $('pre'), viewBox = $('.lp-view');
@@ -147,22 +153,29 @@ export function startStory(root, cfg) {
     pre.innerHTML = lines.map((ln, i) => {
       const hl = S.hl && i + 1 >= S.hl[0] && i + 1 <= S.hl[1];
       const body = i === ci ? paint(ln.slice(0, cj)) + '<span class="caret"></span>' + paint(ln.slice(cj)) : paint(ln);
-      return `<div class="ln${hl ? ' hl' : ''}" data-n="${i + 1}">${body}</div>`;
+      return `<div class="ln${hl ? ' hl' : ''}${i === ci ? ' cur' : ''}" data-n="${i + 1}">${body}</div>`;
     }).join('');
     $('.fn').textContent = S.cur || '（還沒有檔案）';
-    const target = ci >= 0 ? ci : (S.hl ? S.hl[0] - 1 : 0);
-    const lh = 18.4, h = codeBox.clientHeight;
-    pre.style.transform = `translateY(${-Math.max(0, target * lh - h * 0.55)}px)`;
+    const h = codeBox.clientHeight, tEl = pre.querySelector('.ln.cur') || pre.querySelector('.ln.hl');
+    const ty = Math.min(Math.max(0, tEl ? tEl.offsetTop - h * 0.5 : 0), Math.max(0, pre.scrollHeight - h));
+    pre.style.transform = `translateY(${-ty}px)`;
+  };
+  // 放大／縮小程式碼區（自動：新人打字時程式碼大、預覽小；顯示畫面時反過來。也可以點分頁固定）
+  const applyMode = () => {
+    $('.lp-body').dataset.m = S.pin || S.mode || 'even';
+    $('.fn').classList.toggle('pinned', S.pin === 'code'); $('.vw').classList.toggle('pinned', S.pin === 'view');
+    renderCode();
   };
   const typeTo = async (file, target, rate, my) => {
     S.cur = file; if (!(file in S.files)) S.files[file] = '';
     const cur = S.files[file];
     if (fast) { S.files[file] = target; S.caret = -1; return; }
+    rate = Math.max(rate, 24) * TYPE[typing]; // 太快看不清楚：最快也不低於 24ms，再乘上使用者選的打字速度
     let p = 0; while (p < cur.length && p < target.length && cur[p] === target[p]) p++;
     let s = 0; while (s < cur.length - p && s < target.length - p && cur[cur.length - 1 - s] === target[target.length - 1 - s]) s++;
     const tail = cur.slice(cur.length - s), head = cur.slice(0, p);
     let mid = cur.slice(p, cur.length - s);
-    for (; mid.length; ) { mid = mid.slice(0, -1); S.files[file] = head + mid + tail; S.caret = p + mid.length; renderCode(); await wait(16, my); }
+    for (; mid.length; ) { mid = mid.slice(0, -1); S.files[file] = head + mid + tail; S.caret = p + mid.length; renderCode(); await wait(30, my); }
     const add = target.slice(p, target.length - s);
     for (let i = 0; i < add.length; i++) {
       S.files[file] = head + add.slice(0, i + 1) + tail; S.caret = p + i + 1; renderCode();
@@ -191,7 +204,7 @@ export function startStory(root, cfg) {
     window.addEventListener('message', onMsg);
     setTimeout(() => { f.style.opacity = 1; old.forEach((o) => o.remove()); }, 6000);
   };
-  window.addEventListener('resize', () => viewBox.querySelectorAll('.lp-frame').forEach(fitFrame));
+  new ResizeObserver(() => { viewBox.querySelectorAll('.lp-frame').forEach(fitFrame); renderCode(); }).observe(viewBox);
 
   // ── 一個動作 ──
   const run1 = async (b, i, my) => {
@@ -207,20 +220,21 @@ export function startStory(root, cfg) {
       card.classList.remove('show');
     }
     if (b.mood && !b.say) for (const [w, m] of Object.entries(b.mood)) setMood(w, m);
-    if (b.file) { S.cur = b.file; renderCode(); }
-    if (b.hl !== undefined) { S.hl = b.hl; renderCode(); }
+    if (b.file) { S.cur = b.file; S.mode = 'code'; renderCode(); }
+    if (b.hl !== undefined) { S.hl = b.hl; if (b.hl) S.mode = 'code'; renderCode(); }
     if (b.float !== undefined) {
       if (b.float) { float.innerHTML = b.float; float.classList.add('show'); } else float.classList.remove('show');
     }
     if (b.code) {
-      S.hl = null;
+      S.hl = null; S.mode = 'code'; applyMode();
       const who = b.code.by || 'rookie', other = who === 'teacher' ? 'rookie' : 'teacher';
       chr[who].classList.remove('dim'); chr[other].classList.add('dim'); chr[who].classList.add('typing');
       await typeTo(b.code.file, b.code.text, b.code.speed || 34, my);
       chr[who].classList.remove('typing'); renderCode();
+      await wait(800, my); // 打完停一下，讓人看清楚
     }
     if (b.view) {
-      S.view = { files: { ...S.files }, mode: b.view.mode || 'ok' };
+      S.view = { files: { ...S.files }, mode: b.view.mode || 'ok' }; S.mode = 'view'; applyMode();
       if (!fast) loadView(); else S.pendingView = true;
       if (!fast) await wait(b.view.ms || 1500, my);
     }
@@ -234,7 +248,8 @@ export function startStory(root, cfg) {
 
   // ── 主迴圈 ──
   const reset = () => {
-    Object.assign(S, { files: {}, cur: null, caret: -1, hl: null, mood: {}, drawn: {}, view: null, pendingView: false, chapter: -1 });
+    Object.assign(S, { files: {}, cur: null, caret: -1, hl: null, mood: {}, drawn: {}, view: null, pendingView: false, chapter: -1, mode: 'even', pin: null });
+    applyMode();
     pre.innerHTML = ''; $('.fn').textContent = '（還沒有檔案）';
     viewBox.querySelectorAll('.lp-frame').forEach((f) => f.remove());
     if (!viewBox.querySelector('.empty')) viewBox.insertAdjacentHTML('afterbegin', '<div class="empty">電腦螢幕還是黑的～</div>');
@@ -272,19 +287,38 @@ export function startStory(root, cfg) {
 
   // ── 控制：暫停、速度、重播、跳章節 ──
   const updatePlayBtn = () => { $('[data-a=play]').textContent = paused ? '▶' : '⏸'; pausedEl.classList.toggle('show', paused); };
-  const SPEEDS = [1, 1.5, 0.75];
+  const SPEEDS = [0.5, 0.75, 1, 1.5, 2], TYPES = ['slow', 'mid', 'fast'];
+  const labels = () => { $('[data-a=speed]').textContent = '⏱ ' + speed + '×'; $('[data-a=typing]').textContent = '⌨️ ' + TYPE_LABEL[typing]; };
+  // 全螢幕看完整程式碼：暫停，關掉後回到原本的狀態
+  const full = $('.st-full'); let fullFile = null, resumeAfter = false;
+  const drawFull = () => {
+    const names = Object.keys(S.files);
+    fullFile = names.includes(fullFile) ? fullFile : (S.cur || names[0]);
+    full.querySelector('.sf-tabs').innerHTML = names.map((n) => `<button class="sf-tab${n === fullFile ? ' on' : ''}" data-a="full-file" data-f="${esc(n)}">${esc(n)}</button>`).join('') || '<span>（還沒有檔案）</span>';
+    full.querySelector('.sf-pre').innerHTML = (S.files[fullFile] || '').split('\n').map((ln, i) => `<div class="ln" data-n="${i + 1}">${paint(ln)}</div>`).join('');
+  };
+  const openFull = () => { resumeAfter = !paused; paused = true; updatePlayBtn(); fullFile = S.cur; drawFull(); full.classList.add('show'); };
+  const closeFull = () => { full.classList.remove('show'); if (resumeAfter) { paused = false; updatePlayBtn(); } };
   root.addEventListener('click', (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a, seg = e.target.closest('.seg');
     if (seg) return play(chapters[+seg.dataset.k].at);
     if (a === 'play') { paused = !paused; updatePlayBtn(); }
     else if (a === 'replay') play(0);
-    else if (a === 'speed') { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]; e.target.textContent = speed + '×'; }
+    else if (a === 'speed') { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length] || 1; save(); labels(); }
+    else if (a === 'typing') { typing = TYPES[(TYPES.indexOf(typing) + 1) % TYPES.length]; save(); labels(); }
+    else if (a === 'pin-code') { S.pin = S.pin === 'code' ? null : 'code'; applyMode(); }
+    else if (a === 'pin-view') { S.pin = S.pin === 'view' ? null : 'view'; applyMode(); }
+    else if (a === 'full') openFull();
+    else if (a === 'close-full') closeFull();
+    else if (a === 'full-file') { fullFile = e.target.closest('[data-f]').dataset.f; drawFull(); }
+    else if (a === 'copy') { navigator.clipboard?.writeText(S.files[fullFile] || '').then(() => { e.target.textContent = '已複製 ✓'; setTimeout(() => (e.target.textContent = '複製'), 1500); }).catch(() => {}); }
+    else if (e.target.closest('.st-full')) { /* 全螢幕程式碼裡面的點擊不要當成暫停 */ }
     else if (e.target.closest('.st-scene') && !card.classList.contains('show')) { paused = !paused; updatePlayBtn(); } // 點畫面也能暫停
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden && !paused) { paused = true; updatePlayBtn(); } });
-  $('[data-a=speed]').textContent = speed + '×';
+  labels();
 
-  window.__story = { play, get state() { return S; }, setSpeed: (v) => (speed = v), // 測試用
+  window.__story = { play, get state() { return S; }, setSpeed: (v) => (speed = v), setTyping: (v) => (typing = v), // 測試用
     measure: async () => { measure = true; acc = 0; await play(0); measure = false; return acc; } };
   play(+q.get('start') ? chapters[+q.get('start')]?.at || 0 : 0);
 }
