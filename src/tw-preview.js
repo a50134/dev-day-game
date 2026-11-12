@@ -68,6 +68,8 @@ async function render({ files, mode }) {
     if (!app) return showError('這一步還沒有 App.tsx');
     createRoot(root).render(React.createElement(app.default));
   } catch (e) { showError(e); }
+  // 畫面畫好了（等 Tailwind 產生完 CSS）就通知外面，讓動畫版可以平順地換上新畫面
+  requestAnimationFrame(() => setTimeout(() => parent.postMessage({ type: 'preview-rendered' }, '*'), 350));
 }
 
 window.addEventListener('message', (e) => { if (e.data?.type === 'render') render(e.data); });
