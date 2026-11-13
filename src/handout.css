@@ -56,6 +56,18 @@ figure.file .rel { margin: 0; padding: 7px 12px; background: var(--g80); font-si
 body.no-notes .ann .r { display: block; }
 body.no-notes .ann .n { display: none; }
 body.no-notes .ann .r.has .c { background: none; }
+/* 這一部新增／修改的行：藍色（說明用黃色，所以不會混在一起） */
+.ann .r.add .c { background: #0f3b57; color: #fff; box-shadow: inset 4px 0 0 #3fb4ff; opacity: 1; }
+.ann .r.add .c::before { content: "＋ "; color: #7fd0ff; font-weight: 700; }
+body.no-notes .ann .r.add .c { background: #0f3b57; color: #fff; box-shadow: inset 4px 0 0 #3fb4ff; }
+body.no-diff .ann .r.add .c, body.no-diff.no-notes .ann .r.add .c { background: none; color: inherit; box-shadow: none; }
+body.no-diff .ann .r.add .c::before { content: ""; }
+body.no-diff .status .legend { display: none; }
+.status { margin: 0; padding: 6px 12px; font-size: 13.5px; line-height: 1.65; }
+.status.new { background: #e8f6ea; border-bottom: 1px solid #b9dfbf; }
+.status.edit { background: #e1f1fc; border-bottom: 1px solid #a9d3ee; }
+.status .legend { display: block; }
+.sw2 { display: inline-block; width: 14px; height: 14px; margin-right: 6px; border-radius: 3px; background: #0f3b57; box-shadow: inset 4px 0 0 #3fb4ff; vertical-align: -2px; }
 figure.file small { font-weight: 400; font-size: 12px; color: #777; margin-left: 8px; }
 .steps { margin: 0; padding-left: 24px; }
 .steps li { margin: 8px 0; }
@@ -111,7 +123,10 @@ table.ts td:nth-child(2) code { font-size: .8em; }
   .ann { background: #fff; color: #111; font-size: 8.2pt; }
   .ann .r { break-inside: avoid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
   .ann .c, .ann .r:not(.has) .c { background: #f7f7f7; color: #111; opacity: 1; }
+  .status { break-after: avoid; }
   .ann .r.has .c { background: #eef5ef; color: #111; }
+  .ann .r.add .c, body.no-notes .ann .r.add .c { background: #d8ecfb; color: #0b2a40; box-shadow: inset 4px 0 0 #1b8fd8; }
+  .ann .r.add .c::before { color: #1b8fd8; }
   .ann .n { background: #fffdf3; font-size: 8.6pt; }
   figure.file .why, .pair, .steps li { break-inside: avoid; }
   .pair pre { background: #f7f7f7; color: #111; }
