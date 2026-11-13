@@ -59,7 +59,7 @@ const TREE = `i-need-this/
 ├─ .env                ← VITE_ 開頭的設定（公開）
 ├─ .env.local          ← 帳號密碼（不打包、不上傳）
 ├─ public/
-│  └─ images/          ← 從舊專案 assets/images 複製過來
+│  └─ images/          ← 圖片放這裡（程式裡寫 /images/…）
 ├─ scripts/
 │  └─ seed.mjs         ← 建立商品資料（在你的電腦上用 Node 執行）
 └─ src/
@@ -119,7 +119,7 @@ function episode(ep, i) {
   const why = (STEP_WHY[i] || []).map(([a, b]) => `<li><b>${a}</b><span class="because">為什麼：${b}</span></li>`).join('');
   const whyBlock = why ? `<h3>一步一步做（每一步為什麼要這樣做）</h3><ol class="steps">${why}</ol>` : '';
   const newImgs = [...IMG_FIRST].filter(([, e]) => e === i).map(([p]) => p);
-  const imgBlock = newImgs.length ? `<h3>這一部要用到的圖片（先放進 <code>public/images</code>）</h3>${imgTable(newImgs)}<p class="note">圖片放哪、路徑為什麼這樣寫：看最前面的「<a href="#images">圖片放哪裡、路徑怎麼寫</a>」。</p>` : '';
+  const imgBlock = newImgs.length ? `<h3>這一部要用到的圖片（確認 <code>public/images</code> 裡都有）</h3>${imgTable(newImgs)}<p class="note">圖片放哪、路徑為什麼這樣寫：看最前面的「<a href="#images">圖片放哪裡、路徑怎麼寫</a>」。</p>` : '';
   const codeBlock = files.length ? `<div class="codes"><h3>完整程式碼（這一部完成後）<small>右邊的說明是講義加的，複製下來的程式碼是乾淨的</small></h3>${fileBlocks}</div>` : '';
   return `<section class="ep" id="ep${i + 1}"><h2><span class="no">第 ${i + 1} 部</span>${esc(ep.title)}</h2>
     <p class="goal">🎯 ${n.goal}</p><h3>重點整理</h3><ul class="points">${points}</ul>${tips}${whyBlock}${imgBlock}${cmdBlock}${codeBlock}</section>`;
@@ -242,28 +242,32 @@ function guide() {
   </section>`;
 }
 
-// 圖片：舊專案的位置 → 新專案放哪 → 程式裡怎麼寫（路徑是從程式碼掃出來的；對照過 a50134/I-need-this 的檔名）
+// 圖片：放在專案的 public/images → 程式裡寫 /images/…（路徑是從程式碼掃出來的；檔名已對照過 a50134/I-need-this 的 assets/images）
 const imgRow = (p) => {
   const user = [...new Set(Object.entries(ALL).filter(([, c]) => imagePathsOf(c).includes(p)).map(([f]) => base(f)))];
-  return `<tr><td><code>assets/${p}</code></td><td><code>public/${p}</code></td><td><code>/${p}</code></td><td>${user.map((x) => `<code>${x}</code>`).join('、')}</td></tr>`;
+  return `<tr><td>☐</td><td><code>public/${p}</code></td><td><code>/${p}</code></td><td>${user.map((x) => `<code>${x}</code>`).join('、')}</td></tr>`;
 };
-const imgTable = (list) => `<table><thead><tr><th>舊專案的位置（複製來源）</th><th>新專案放哪裡</th><th>程式裡怎麼寫</th><th>用在</th></tr></thead><tbody>${list.map(imgRow).join('')}</tbody></table>`;
+const imgTable = (list) => `<table><thead><tr><th>有了嗎</th><th>檔案在你專案的位置</th><th>程式裡怎麼寫</th><th>用在</th></tr></thead><tbody>${list.map(imgRow).join('')}</tbody></table>`;
 
 function images() {
   const all = [...IMG_FIRST.keys()];
   const svgs = all.filter((p) => p.startsWith('images/svg/')), pics = all.filter((p) => !p.startsWith('images/svg/'));
   return `<section class="ep guide" id="images"><h2><span class="no">先讀</span>圖片放哪裡、路徑怎麼寫</h2>
     <p class="lead">圖片<b>不是 import 進來的</b>，而是放在 <code>public/</code> 資料夾，程式裡直接寫「網址」。重點只有一句：<b>放在 <code>public/images/…</code>，程式就寫 <code>/images/…</code></b>（把 <code>public</code> 拿掉、前面加一個 <code>/</code>）。</p>
-    <h3>① 路徑怎麼改：舊專案 → 新專案</h3>
-    <p>你之前切版的專案（I-need-this）圖片放在 <code>assets/images</code>。這次把整個 <b><code>images</code> 資料夾</b>複製起來，貼到新專案的 <code>public</code> 底下，資料夾裡面的結構（<code>svg/</code> 子資料夾）<b>不要改</b>：</p>
-    <pre class="tree">舊專案 I-need-this/                  新專案 i-need-this/
-└─ assets/                           └─ public/
-   └─ images/        ──複製整個資料夾──▶   └─ images/
-      ├─ hero-01.png                        ├─ hero-01.png
-      └─ svg/                               └─ svg/
-         └─ Cart.svg                           └─ Cart.svg
+    <h3>① 圖片放在哪裡</h3>
+    <p>圖片都放在專案資料夾的 <b><code>public\\images</code></b> 裡（你的專案已經是這樣放好了，<b>不用再複製</b>）。資料夾裡面的結構（<code>svg/</code> 子資料夾）要和程式碼裡的路徑一致：</p>
+    <pre class="tree">你的專案/
+└─ public/
+   └─ images/
+      ├─ hero-01.png
+      ├─ section-01.png
+      └─ svg/
+         ├─ Cart.svg
+         └─ logo_on light.svg
 
-程式裡寫：  src="/images/hero-01.png"　　src="/images/svg/Cart.svg"</pre>
+程式裡寫：  src="/images/hero-01.png"　　src="/images/svg/Cart.svg"
+（檔案路徑 <b>public/</b>images/hero-01.png → 網址 <b>/</b>images/hero-01.png：把 public 拿掉，前面加 /）</pre>
+    <p class="hint">如果你的 <code>public/images</code> 還是空的：這些圖片來自舊專案 I-need-this 的 <code>assets/images</code>，把整個 <code>images</code> 資料夾複製進 <code>public</code> 就好。</p>
     <h3>② 為什麼這樣寫</h3>
     ${table(['問題', '回答'], [
       ['為什麼放在 <code>public</code>？', '<code>public</code> 裡的檔案會<b>原封不動</b>放到網站的最外層，所以 <code>public/images/hero-01.png</code> 的網址就是 <code>/images/hero-01.png</code>。'],
@@ -274,7 +278,7 @@ function images() {
       ['商品的圖片呢？', '商品圖不是放在專案裡，而是用<b>網址</b>：seed 程式用 <code>https://raw.githubusercontent.com/a50134/I-need-this/main/assets/images/product-img-04.jpg</code> 這種完整網址存進 API（所以舊專案的 GitHub 要保持公開）。'],
     ])}
     <h3>③ 這個系列用到的全部圖片（${all.length} 張）</h3>
-    <p class="hint">以下檔案都已對照過你舊專案的 <code>assets/images</code>，檔名與副檔名都存在。舊專案裡其他圖片（例如 <code>essential-oil-*.jpg</code>）是後面頁面用的，首頁用不到。</p>
+    <p class="hint">用這張表當<b>檢查清單</b>：打開你專案的 <code>public\\images</code>，確認這些檔案都在（檔名、大小寫、副檔名要一模一樣）。我已經對照過舊專案 I-need-this 的 <code>assets/images</code>，這些檔名都存在。資料夾裡其他圖片（例如 <code>essential-oil-*.jpg</code>）是後面頁面用的，首頁用不到，有沒有都沒關係。</p>
     <h4>照片（<code>images/</code>）</h4>${imgTable(pics)}
     <h4>圖示與裝飾（<code>images/svg/</code>）</h4>${imgTable(svgs)}
   </section>`;

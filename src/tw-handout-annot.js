@@ -382,7 +382,7 @@ export const STEP_WHY = [
     ['加上 <code>arrow</code> 屬性', '設計稿有些按鈕後面有箭頭。用一個「開關」屬性控制，用的人不需要自己放圖片。'],
   ],
   /* 6 */ [
-    ['先複製圖片素材到 <code>public/images</code>', '放在 <code>public</code> 的檔案，網址會直接從根目錄開始，所以程式裡寫 <code>/images/…</code> 就找得到，不需要 import。'],
+    ['確認圖片素材已放在 <code>public/images</code>（沒有就從舊專案複製）', '放在 <code>public</code> 的檔案，網址會直接從根目錄開始，所以程式裡寫 <code>/images/…</code> 就找得到，不需要 import。'],
     ['先做只有 logo 的導覽列', '一次只做一件事：先確認「固定在上方」可以運作，再慢慢加東西，出問題才好找原因。'],
     ['桌面版右邊加 <code>hidden lg:flex</code>', '桌面放得下的一整排，手機放不下。<b>手機優先</b>：預設隱藏，螢幕夠寬才顯示。'],
     ['用 <code>useState&lt;string | null&gt;</code> 做假登入', '登入狀態會改變、而且畫面要跟著變，所以用 state 記住。要明確寫型別，TypeScript 才知道它「可能是字串」。'],
