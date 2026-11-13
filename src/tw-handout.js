@@ -44,7 +44,7 @@ function cover() {
     <h1>I need this 首頁<br>手把手講義</h1>
     <p class="sub">照 Figma 設計稿，做出共用顏色／字型／按鈕、導覽列、輪播、熱賣商品（串六角 API）、購物車與頁尾。</p>
     <ul class="meta">
-      <li>搭配影片：<a href="tailwind-react-video.html">tailwind-react-video.html</a>（13 部，講義的章節與影片一一對應）</li>
+      <li>搭配動畫版：<a href="tw-story.html">tw-story.html</a>（13 部，講義的章節與動畫一一對應）</li>
       <li>需要：Node.js 20.19 以上（或 22.12 以上）、VS Code、一個六角 API 路徑</li>
       <li>範圍：只做<b>首頁</b>；產品列表、品牌介紹、商品細節、結帳是第二階段</li>
       <li>程式碼與指令是從影片資料自動帶出，和影片<b>完全一致</b></li>

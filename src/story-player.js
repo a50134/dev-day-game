@@ -6,7 +6,10 @@
 //   { card: ['大標', '副標', '🎨'], ms: 2200 }    全螢幕標題卡
 //   { say: 'teacher'|'rookie', text, mood, fx }   說話（氣泡逐字出現；**粗體**、`程式`）
 //   { mood: { teacher: 'happy', rookie: 'worried' } }  只換表情
-//   { code: { file, text, speed } }              新人在編輯器裡打字（會先退格到相同的開頭再往下打）
+//   { code: { file, text, slow, bulk } }         新人在編輯器裡打字（只改中間不一樣的地方，像真人改字；slow 用於小地方的修改；bulk 用於大量重複的內容，快速帶過）。每打完一行會停一下讓人看
+//   { term: { cmd, out, err, clear } }           終端機：打指令、輸出結果（err 是紅字的錯誤輸出）；term: null 回到程式碼
+//   { err: { line, match, text } | null }       在第 line 行的 match 上畫紅色波浪線，並顯示 TypeScript 的錯誤訊息
+//   { vp: 'desktop' | 'mobile' }                 預覽用桌面寬度或手機寬度
 //   { file: 'src/App.tsx' }                      切換顯示哪個檔案
 //   { hl: [起, 迄] | null }                      老師用手指指出第幾行
 //   { view: true | { mode } }                    把目前所有檔案丟進預覽（真的執行）
@@ -47,28 +50,37 @@ const paint = (line) => {
 };
 
 export function startStory(root, cfg) {
-  const { title, sub = '', cast, beats, preview = 'tw-preview.html', backHref = '' } = cfg;
+  const { title, sub = '', cast, beats, preview = 'tw-preview.html', backHref = '', baseFiles = {}, menu = [], index = 0, next = null } = cfg;
   const q = new URLSearchParams(location.search);
-  let speed = +q.get('speed') || 1;
+  const KEY = 'ddg-story-settings';
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })();
+  const TYPE = { slow: 3.2, mid: 1.6, fast: 0.8 }, TYPE_LABEL = { slow: '慢', mid: '中', fast: '快' }; // 打字每個字的時間倍率
+  const PAUSE = { slow: 1.3, mid: 1, fast: 0.6 }; // 每打完一行停多久的倍率
+  let speed = +q.get('speed') || saved.speed || 1;
+  let typing = TYPE[q.get('typing')] ? q.get('typing') : TYPE[saved.typing] ? saved.typing : 'mid';
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ speed, typing })); } catch {} };
   let paused = false, fast = false, token = 0, measure = false, acc = 0;
   const S = {};
 
   // ── 畫面骨架 ──
   root.innerHTML = `<div class="st">
-    <div class="st-top"><div class="st-title">${esc(title)}<small></small></div>${backHref ? `<a class="st-back" href="${backHref}">← 回影片版</a>` : ''}
-      <button class="st-btn" data-a="speed">1×</button><button class="st-btn" data-a="play">⏸</button><button class="st-btn" data-a="replay">↻</button></div>
+    <div class="st-top">${menu.length ? '<button class="st-btn" data-a="menu" title="目錄">☰</button>' : ''}<div class="st-title">${esc(title)}<small></small></div>${backHref ? `<a class="st-back" href="${backHref}">← 回影片版</a>` : ''}
+      <button class="st-btn" data-a="speed" title="整體速度">⏱ 1×</button><button class="st-btn" data-a="typing" title="打字速度">⌨️ 中</button><button class="st-btn" data-a="play">⏸</button><button class="st-btn" data-a="replay">↻</button></div>
     <div class="st-scene">
       <div class="st-chr teacher"><div class="st-av"><div class="face"></div><span class="nm"></span></div><div class="bub"></div></div>
-      <div class="st-laptop"><div class="lp-bar"><i></i><i></i><i></i><span class="fn">（還沒有檔案）</span><span class="vw">🌐 預覽</span></div>
-        <div class="lp-body"><div class="lp-code"><pre></pre></div><div class="lp-view"><div class="empty">電腦螢幕還是黑的～</div></div></div></div>
+      <div class="st-laptop"><div class="lp-bar"><i></i><i></i><i></i><button class="tab fn" data-a="pin-code" title="點一下：固定放大程式碼">（還沒有檔案）</button><button class="tab vw" data-a="pin-view" title="點一下：固定放大預覽">🌐 預覽</button><button class="tab vp" data-a="vp" title="切換手機／桌面預覽">📱</button><button class="tab zoom" data-a="full" title="暫停，全螢幕看完整程式碼">🔍</button></div>
+        <div class="lp-body"><div class="lp-code" data-pane="code"><pre></pre><div class="lp-term"></div></div><div class="lp-view"><div class="empty">電腦螢幕還是黑的～</div></div></div></div>
       <div class="st-chr rookie"><div class="st-av"><div class="face"></div><span class="nm"></span></div><div class="bub"></div></div>
       <div class="st-float"></div><div class="st-card"></div><div class="st-paused">⏸ 暫停中　點一下繼續</div>
+      <div class="st-menu"><h3>目錄</h3><div class="mn-list"></div><button class="st-btn" data-a="close-menu">關閉</button></div>
+      <div class="st-full"><div class="sf-bar"><span class="sf-tabs"></span><button class="st-btn" data-a="copy">複製</button><button class="st-btn" data-a="close-full">✕ 關閉</button></div><pre class="sf-pre"></pre></div>
     </div><div class="st-prog"></div></div>`;
   const $ = (sel) => root.querySelector(sel);
   const scene = $('.st-scene'), laptop = $('.st-laptop'), codeBox = $('.lp-code'), pre = $('pre'), viewBox = $('.lp-view');
   const chr = { teacher: $('.st-chr.teacher'), rookie: $('.st-chr.rookie') };
   for (const w of ['teacher', 'rookie']) chr[w].querySelector('.nm').textContent = cast[w].name;
-  const float = $('.st-float'), card = $('.st-card'), pausedEl = $('.st-paused');
+  const float = $('.st-float'), card = $('.st-card'), pausedEl = $('.st-paused'), termEl = $('.lp-term'), codePane = $('.lp-code');
+  const FRAME_W = () => (S.vp === 'desktop' ? 1280 : 390);
 
   // 章節
   const chapters = [];
@@ -146,34 +158,59 @@ export function startStory(root, cfg) {
     if (S.caret >= 0) { const before = text.slice(0, S.caret).split('\n'); ci = before.length - 1; cj = before[ci].length; }
     pre.innerHTML = lines.map((ln, i) => {
       const hl = S.hl && i + 1 >= S.hl[0] && i + 1 <= S.hl[1];
-      const body = i === ci ? paint(ln.slice(0, cj)) + '<span class="caret"></span>' + paint(ln.slice(cj)) : paint(ln);
-      return `<div class="ln${hl ? ' hl' : ''}" data-n="${i + 1}">${body}</div>`;
+      let body = i === ci ? paint(ln.slice(0, cj)) + '<span class="caret"></span>' + paint(ln.slice(cj)) : paint(ln);
+      let tip = '';
+      if (S.err && S.err.file === S.cur && S.err.line === i + 1) {
+        const at = ln.indexOf(S.err.match);
+        if (at >= 0) body = paint(ln.slice(0, at)) + `<span class="sq">${paint(S.err.match)}</span>` + paint(ln.slice(at + S.err.match.length));
+        tip = `<div class="ln-tip">❌ ${esc(S.err.text)}</div>`;
+      }
+      return `<div class="ln${hl ? ' hl' : ''}${i === ci ? ' cur' : ''}${tip ? ' bad' : ''}" data-n="${i + 1}">${body}</div>${tip}`;
     }).join('');
-    $('.fn').textContent = S.cur || '（還沒有檔案）';
-    const target = ci >= 0 ? ci : (S.hl ? S.hl[0] - 1 : 0);
-    const lh = 18.4, h = codeBox.clientHeight;
-    pre.style.transform = `translateY(${-Math.max(0, target * lh - h * 0.55)}px)`;
+    $('.fn').textContent = S.pane === 'term' ? '⌨️ 終端機' : S.cur || '（還沒有檔案）';
+    const h = codeBox.clientHeight, tEl = pre.querySelector('.ln.cur') || pre.querySelector('.ln.hl');
+    const ty = Math.min(Math.max(0, tEl ? tEl.offsetTop - h * 0.5 : 0), Math.max(0, pre.scrollHeight - h));
+    pre.style.transform = `translateY(${-ty}px)`;
   };
-  const typeTo = async (file, target, rate, my) => {
-    S.cur = file; if (!(file in S.files)) S.files[file] = '';
+  // 放大／縮小程式碼區（自動：新人打字時程式碼大、預覽小；顯示畫面時反過來。也可以點分頁固定）
+  const renderTerm = () => {
+    termEl.innerHTML = S.term.map((l) => (l.k === 'cmd' ? `<div class="tl cmd"><span>$</span> ${esc(l.t)}${l.live ? '<i class="caret"></i>' : ''}</div>` : `<div class="tl ${l.k}">${esc(l.t) || '&nbsp;'}</div>`)).join('');
+    termEl.scrollTop = termEl.scrollHeight;
+  };
+  const applyMode = () => {
+    codePane.dataset.pane = S.pane || 'code';
+    $('.vp').textContent = S.vp === 'desktop' ? '🖥️' : '📱';
+    $('.lp-body').dataset.m = S.pin || S.mode || 'even';
+    $('.fn').classList.toggle('pinned', S.pin === 'code'); $('.vw').classList.toggle('pinned', S.pin === 'view');
+    renderCode();
+  };
+  const typeTo = async (file, target, slow, my, bulk) => {
+    S.cur = file; S.pane = 'code'; if (!(file in S.files)) S.files[file] = '';
     const cur = S.files[file];
     if (fast) { S.files[file] = target; S.caret = -1; return; }
+    const rate = (slow ? 45 : bulk ? 8 : 16) * TYPE[typing]; // 一般打得快（約 40 字／秒）；小地方的修改（slow）打慢一點；大量重複的內容（bulk）打很快、不逐行停
+    const common = (from) => { let k = 0; while (k < cur.length - from && k < target.length - from && cur[cur.length - 1 - k] === target[target.length - 1 - k]) k++; return k; };
     let p = 0; while (p < cur.length && p < target.length && cur[p] === target[p]) p++;
-    let s = 0; while (s < cur.length - p && s < target.length - p && cur[cur.length - 1 - s] === target[target.length - 1 - s]) s++;
+    let s = common(p);
+    if (cur.slice(p, cur.length - s).includes('\n') || target.slice(p, target.length - s).includes('\n')) { p = cur.lastIndexOf('\n', p - 1) + 1; s = common(p); } // 跨行的修改：從行首開始
     const tail = cur.slice(cur.length - s), head = cur.slice(0, p);
     let mid = cur.slice(p, cur.length - s);
-    for (; mid.length; ) { mid = mid.slice(0, -1); S.files[file] = head + mid + tail; S.caret = p + mid.length; renderCode(); await wait(16, my); }
+    for (; mid.length; ) { mid = mid.slice(0, -1); S.files[file] = head + mid + tail; S.caret = p + mid.length; renderCode(); await wait(30, my); }
     const add = target.slice(p, target.length - s);
     for (let i = 0; i < add.length; i++) {
       S.files[file] = head + add.slice(0, i + 1) + tail; S.caret = p + i + 1; renderCode();
-      await wait(add[i] === '\n' ? rate * 4 : rate * (0.6 + Math.random() * 0.8), my);
+      await wait(rate * (0.6 + Math.random() * 0.8), my);
+      if (add[i] === '\n') { // 這一行打完了：停一下，停多久看這一行有多長
+        const done = (head + add.slice(0, i + 1)).split('\n').slice(-2, -1)[0].trim().length;
+        await wait((bulk ? 60 : done ? 380 + Math.min(done, 80) * 16 : 160) * PAUSE[typing], my);
+      }
     }
     S.files[file] = target; S.caret = p + add.length; renderCode();
   };
 
   // ── 預覽（真的執行程式碼；新舊兩個 iframe 交替，不會閃一下白畫面）──
   const fitFrame = (f) => {
-    const W = 390, k = viewBox.clientWidth / W;
+    const W = FRAME_W(), k = viewBox.clientWidth / W;
     Object.assign(f.style, { width: W + 'px', height: viewBox.clientHeight / k + 'px', transform: `scale(${k})` });
   };
   const loadView = () => {
@@ -182,16 +219,41 @@ export function startStory(root, cfg) {
     const f = document.createElement('iframe'); f.className = 'lp-frame'; f.src = preview; f.title = '預覽';
     fitFrame(f); viewBox.append(f);
     const old = [...viewBox.querySelectorAll('.lp-frame')].filter((x) => x !== f);
-    const { files, mode } = S.view;
+    const { files, mode, scroll } = S.view;
     const onMsg = (ev) => {
       if (ev.source !== f.contentWindow) return;
       if (ev.data?.type === 'preview-ready') f.contentWindow.postMessage({ type: 'render', files, mode }, '*');
-      if (ev.data?.type === 'preview-rendered') { window.removeEventListener('message', onMsg); f.style.opacity = 1; setTimeout(() => old.forEach((o) => o.remove()), 300); }
+      if (ev.data?.type === 'preview-rendered') {
+        window.removeEventListener('message', onMsg); f.style.opacity = 1; setTimeout(() => old.forEach((o) => o.remove()), 300);
+        if (scroll) setTimeout(() => f.contentWindow?.postMessage({ type: 'scroll-to', text: scroll }, '*'), 900); // 等 API 資料出來再捲
+      }
     };
     window.addEventListener('message', onMsg);
     setTimeout(() => { f.style.opacity = 1; old.forEach((o) => o.remove()); }, 6000);
   };
-  window.addEventListener('resize', () => viewBox.querySelectorAll('.lp-frame').forEach(fitFrame));
+  new ResizeObserver(() => { viewBox.querySelectorAll('.lp-frame').forEach(fitFrame); renderCode(); }).observe(viewBox);
+
+  // ── 終端機：打指令、一行一行印出結果 ──
+  const runTerm = async (t, my) => {
+    if (t === null) { S.pane = 'code'; applyMode(); return; }
+    S.pane = 'term'; S.mode = 'code'; if (t.clear) S.term = [];
+    applyMode(); renderTerm();
+    if (fast) {
+      if (t.cmd !== undefined) S.term.push({ k: 'cmd', t: t.cmd });
+      for (const l of t.out || []) S.term.push({ k: 'out', t: l });
+      for (const l of t.err || []) S.term.push({ k: 'err', t: l });
+      return;
+    }
+    if (t.cmd !== undefined) {
+      const line = { k: 'cmd', t: '', live: true }; S.term.push(line);
+      await wait(400, my);
+      for (let i = 1; i <= t.cmd.length; i++) { line.t = t.cmd.slice(0, i); renderTerm(); await wait(16 * TYPE[typing] * (0.6 + Math.random() * 0.8) * 2, my); }
+      line.live = false; renderTerm(); await wait(500, my);
+    }
+    for (const l of t.out || []) { S.term.push({ k: 'out', t: l }); renderTerm(); await wait(t.gap ?? 240, my); }
+    for (const l of t.err || []) { S.term.push({ k: 'err', t: l }); renderTerm(); await wait(t.gap ?? 240, my); }
+    await wait(t.hold ?? 900, my);
+  };
 
   // ── 一個動作 ──
   const run1 = async (b, i, my) => {
@@ -207,20 +269,24 @@ export function startStory(root, cfg) {
       card.classList.remove('show');
     }
     if (b.mood && !b.say) for (const [w, m] of Object.entries(b.mood)) setMood(w, m);
-    if (b.file) { S.cur = b.file; renderCode(); }
-    if (b.hl !== undefined) { S.hl = b.hl; renderCode(); }
+    if (b.file) { S.cur = b.file; S.pane = 'code'; S.mode = 'code'; applyMode(); }
+    if (b.vp) { S.vp = b.vp; applyMode(); viewBox.querySelectorAll('.lp-frame').forEach(fitFrame); }
+    if (b.err !== undefined) { S.err = b.err ? { ...b.err, file: S.cur } : null; renderCode(); }
+    if (b.term !== undefined) await runTerm(b.term, my);
+    if (b.hl !== undefined) { S.hl = b.hl; if (b.hl) S.mode = 'code'; renderCode(); }
     if (b.float !== undefined) {
       if (b.float) { float.innerHTML = b.float; float.classList.add('show'); } else float.classList.remove('show');
     }
     if (b.code) {
-      S.hl = null;
+      S.hl = null; S.mode = 'code'; applyMode();
       const who = b.code.by || 'rookie', other = who === 'teacher' ? 'rookie' : 'teacher';
       chr[who].classList.remove('dim'); chr[other].classList.add('dim'); chr[who].classList.add('typing');
-      await typeTo(b.code.file, b.code.text, b.code.speed || 34, my);
+      await typeTo(b.code.file, b.code.text, b.code.slow, my, b.code.bulk);
       chr[who].classList.remove('typing'); renderCode();
+      await wait(800, my); // 打完停一下，讓人看清楚
     }
     if (b.view) {
-      S.view = { files: { ...S.files }, mode: b.view.mode || 'ok' };
+      S.view = { files: { ...S.files }, mode: b.view.mode || 'ok', scroll: b.view.scroll }; S.mode = 'view'; applyMode();
       if (!fast) loadView(); else S.pendingView = true;
       if (!fast) await wait(b.view.ms || 1500, my);
     }
@@ -234,7 +300,8 @@ export function startStory(root, cfg) {
 
   // ── 主迴圈 ──
   const reset = () => {
-    Object.assign(S, { files: {}, cur: null, caret: -1, hl: null, mood: {}, drawn: {}, view: null, pendingView: false, chapter: -1 });
+    Object.assign(S, { files: JSON.parse(JSON.stringify(baseFiles)), cur: null, caret: -1, hl: null, mood: {}, drawn: {}, view: null, pendingView: false, chapter: -1, mode: 'even', pin: null, pane: 'code', term: [], err: null, vp: cfg.vp || 'mobile' });
+    applyMode(); renderTerm();
     pre.innerHTML = ''; $('.fn').textContent = '（還沒有檔案）';
     viewBox.querySelectorAll('.lp-frame').forEach((f) => f.remove());
     if (!viewBox.querySelector('.empty')) viewBox.insertAdjacentHTML('afterbegin', '<div class="empty">電腦螢幕還是黑的～</div>');
@@ -265,26 +332,65 @@ export function startStory(root, cfg) {
   }
   const end = () => {
     for (const w of ['teacher', 'rookie']) { chr[w].classList.remove('talking', 'dim'); }
-    card.innerHTML = `<div class="big">🎉</div><h2>${esc(cfg.endTitle || '完成！')}</h2><p>${esc(cfg.endSub || '')}</p><div class="row"><button class="st-btn p" data-a="replay">↻ 再看一次</button>${backHref ? `<a class="st-btn" href="${backHref}" style="display:grid;place-items:center;text-decoration:none;color:inherit">看影片版</a>` : ''}</div>`;
+    card.innerHTML = `<div class="big">🎉</div><h2>${esc(cfg.endTitle || '完成！')}</h2><p>${esc(cfg.endSub || '')}</p>
+      ${next ? `<p class="nx">下一部：<b>${esc(next.title)}</b>　<span class="cd"></span></p>` : '<p class="nx">這份教學全部完成了 🎊</p>'}
+      <div class="row">${next ? '<button class="st-btn p" data-a="go-next">▶ 馬上開始</button><button class="st-btn" data-a="stay">停在這裡</button>' : ''}<button class="st-btn${next ? '' : ' p'}" data-a="replay">↻ 再看一次</button>${menu.length ? '<button class="st-btn" data-a="menu">☰ 目錄</button>' : ''}</div>`;
     card.classList.add('show');
+    if (next) { // 不用按：幾秒後自動接著播下一部（可以按「停在這裡」取消）
+      let left = 8; const cd = card.querySelector('.cd'); cd.textContent = left + ' 秒後自動開始';
+      const tick = setInterval(() => {
+        if (!card.classList.contains('show') || !card.querySelector('.cd')) return clearInterval(tick);
+        if (paused) return;
+        cd.textContent = --left + ' 秒後自動開始';
+        if (left <= 0) { clearInterval(tick); location.href = next.href; }
+      }, 1000);
+      card.dataset.tick = tick;
+    }
     segs.forEach((s) => (s.querySelector('b').style.width = '100%'));
   };
 
   // ── 控制：暫停、速度、重播、跳章節 ──
   const updatePlayBtn = () => { $('[data-a=play]').textContent = paused ? '▶' : '⏸'; pausedEl.classList.toggle('show', paused); };
-  const SPEEDS = [1, 1.5, 0.75];
+  const SPEEDS = [0.5, 0.75, 1, 1.5, 2], TYPES = ['slow', 'mid', 'fast'];
+  const labels = () => { $('[data-a=speed]').textContent = '⏱ ' + speed + '×'; $('[data-a=typing]').textContent = '⌨️ ' + TYPE_LABEL[typing]; };
+  // 全螢幕看完整程式碼：暫停，關掉後回到原本的狀態
+  const full = $('.st-full'); let fullFile = null, resumeAfter = false;
+  const drawFull = () => {
+    const names = Object.keys(S.files);
+    fullFile = names.includes(fullFile) ? fullFile : (S.cur || names[0]);
+    full.querySelector('.sf-tabs').innerHTML = names.map((n) => `<button class="sf-tab${n === fullFile ? ' on' : ''}" data-a="full-file" data-f="${esc(n)}">${esc(n)}</button>`).join('') || '<span>（還沒有檔案）</span>';
+    full.querySelector('.sf-pre').innerHTML = (S.files[fullFile] || '').split('\n').map((ln, i) => `<div class="ln" data-n="${i + 1}">${paint(ln)}</div>`).join('');
+  };
+  const menuEl = $('.st-menu');
+  const openMenu = () => { resumeAfter = !paused; paused = true; updatePlayBtn(); menuEl.querySelector('.mn-list').innerHTML = menu.map((m, k) => `<a class="mn${k === index ? ' on' : ''}" href="${m.href}"><b>${k + 1}</b>${esc(m.title)}</a>`).join(''); menuEl.classList.add('show'); };
+  const closeMenu = () => { menuEl.classList.remove('show'); if (resumeAfter && !full.classList.contains('show')) { paused = false; updatePlayBtn(); } };
+  const openFull = () => { resumeAfter = !paused; paused = true; updatePlayBtn(); fullFile = S.cur; drawFull(); full.classList.add('show'); };
+  const closeFull = () => { full.classList.remove('show'); if (resumeAfter) { paused = false; updatePlayBtn(); } };
   root.addEventListener('click', (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a, seg = e.target.closest('.seg');
     if (seg) return play(chapters[+seg.dataset.k].at);
     if (a === 'play') { paused = !paused; updatePlayBtn(); }
     else if (a === 'replay') play(0);
-    else if (a === 'speed') { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]; e.target.textContent = speed + '×'; }
+    else if (a === 'speed') { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length] || 1; save(); labels(); }
+    else if (a === 'typing') { typing = TYPES[(TYPES.indexOf(typing) + 1) % TYPES.length]; save(); labels(); }
+    else if (a === 'pin-code') { S.pin = S.pin === 'code' ? null : 'code'; applyMode(); }
+    else if (a === 'pin-view') { S.pin = S.pin === 'view' ? null : 'view'; applyMode(); }
+    else if (a === 'full') openFull();
+    else if (a === 'vp') { S.vp = S.vp === 'desktop' ? 'mobile' : 'desktop'; applyMode(); viewBox.querySelectorAll('.lp-frame').forEach(fitFrame); }
+    else if (a === 'menu') openMenu();
+    else if (a === 'close-menu') closeMenu();
+    else if (a === 'go-next') location.href = next.href;
+    else if (a === 'stay') { clearInterval(+card.dataset.tick); card.querySelector('.nx .cd')?.remove(); card.querySelector('[data-a=stay]')?.remove(); }
+    else if (a === 'close-full') closeFull();
+    else if (a === 'full-file') { fullFile = e.target.closest('[data-f]').dataset.f; drawFull(); }
+    else if (a === 'copy') { navigator.clipboard?.writeText(S.files[fullFile] || '').then(() => { e.target.textContent = '已複製 ✓'; setTimeout(() => (e.target.textContent = '複製'), 1500); }).catch(() => {}); }
+    else if (e.target.closest('.st-full, .st-menu')) { /* 全螢幕程式碼、目錄裡面的點擊不要當成暫停 */ }
     else if (e.target.closest('.st-scene') && !card.classList.contains('show')) { paused = !paused; updatePlayBtn(); } // 點畫面也能暫停
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden && !paused) { paused = true; updatePlayBtn(); } });
-  $('[data-a=speed]').textContent = speed + '×';
+  labels();
 
-  window.__story = { play, get state() { return S; }, setSpeed: (v) => (speed = v), // 測試用
+  window.__story = { play, get state() { return S; }, setSpeed: (v) => (speed = v), setTyping: (v) => (typing = v), // 測試用
     measure: async () => { measure = true; acc = 0; await play(0); measure = false; return acc; } };
   play(+q.get('start') ? chapters[+q.get('start')]?.at || 0 : 0);
 }

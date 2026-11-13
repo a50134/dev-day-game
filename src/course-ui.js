@@ -38,9 +38,9 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
     }
   };
 
-  const VIDEO = { nd: 'node-video.html', rc: 'react-video.html', tw: 'tailwind-react-video.html' };
+  const VIDEO = { nd: 'node-video.html', rc: 'react-video.html' }; // 有影片式教學的課
   const HANDOUT = { tw: 'tailwind-react-handout.html' }; // 有講義的課
-  const STORY = { tw: 'tw-story.html' }; // 有「老師＋新人」動畫版的課（目前只有第 3 部樣品） // 有影片式教學的課
+  const STORY = { tw: 'tw-story.html' }; // 有「老師＋新人」動畫版的課（Tailwind 13 部）
   return {
     classroom() {
       const acts = [];
@@ -50,7 +50,7 @@ export function makeCourse({ S, screen, btn, apply, go, say, store }) {
       if (!room) { // 第一層：先選課
         html = COURSES.map((c) => {
           const ls = c.chapters.flatMap((ch) => ch.lessons), n = ls.filter((l) => done(l.id)).length;
-          return `<div class="card"><h2>${c.icon} ${c.name}</h2><div class="row">共 ${ls.length} 個單元，已完成 ${n} 個 ${btn('進入', add(() => { S.room = c.id; go('classroom'); }))}${VIDEO[c.id] ? ` <a href="${VIDEO[c.id]}">🎬 影片教學（一步一步看）</a>` : ''}${HANDOUT[c.id] ? ` <a href="${HANDOUT[c.id]}">📄 講義</a>` : ''}${STORY[c.id] ? ` <a href="${STORY[c.id]}">🎭 動畫版（樣品）</a>` : ''}</div></div>`;
+          return `<div class="card"><h2>${c.icon} ${c.name}</h2><div class="row">共 ${ls.length} 個單元，已完成 ${n} 個 ${btn('進入', add(() => { S.room = c.id; go('classroom'); }))}${VIDEO[c.id] ? ` <a href="${VIDEO[c.id]}">🎬 影片教學（一步一步看）</a>` : ''}${HANDOUT[c.id] ? ` <a href="${HANDOUT[c.id]}">📄 講義</a>` : ''}${STORY[c.id] ? ` <a href="${STORY[c.id]}">🎭 動畫版教學（老師＋新人）</a>` : ''}</div></div>`;
         }).join('');
       } else { // 第二層：選單元
         html = `<div class="card"><h2>${room.icon} ${room.name}</h2>` + room.chapters.map((ch) => {
