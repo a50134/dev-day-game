@@ -2,6 +2,7 @@
 import * as K from './tw2-code.js';
 import * as D from './tw2-code-detail.js';
 import * as O from './tw2-code-checkout.js';
+import * as B from './tw2-code-brand.js';
 
 export const EPISODES_4 = [
   {
@@ -78,4 +79,17 @@ export const EPISODES_6 = [
     ],
   },
 ];
-export const EPISODES2 = [...EPISODES_4, ...EPISODES_5, ...EPISODES_6];
+export const EPISODES_7 = [
+  {
+    title: '品牌介紹頁',
+    steps: [
+      { say: '頁面的文字與圖片資料。', file: 'src/data/brand.ts', code: B.BRAND_DATA },
+      { say: '把一行一行的文字接起來。', file: 'src/components/BrandLines.tsx', code: B.BRAND_LINES },
+      { say: '一塊「圖＋文字」。', file: 'src/components/BrandBlock.tsx', code: B.BRAND_BLOCK },
+      { say: '組裝品牌介紹頁。', file: 'src/pages/BrandPage.tsx', code: B.BRAND_PAGE },
+      { say: 'App 新增 brand 路由。', file: 'src/App.tsx', code: B.APP_BRAND },
+      { say: '確認可以建置。', term: ['$ npm run build', '', '> tsc -b && vite build', '', '✓ built'] },
+    ],
+  },
+];
+export const EPISODES2 = [...EPISODES_4, ...EPISODES_5, ...EPISODES_6, ...EPISODES_7];
