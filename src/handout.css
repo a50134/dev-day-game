@@ -135,3 +135,18 @@ table.ts td:nth-child(2) code { font-size: .8em; }
   code { background: #eef5ef; }
   a { color: inherit; text-decoration: none; }
 }
+
+/* 第二階段：設計稿對照 */
+.design-cmp { margin: 14px 0; }
+.dsg { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.shots { display: flex; flex-direction: column; gap: 12px; }
+.shot { margin: 0; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+.shot img { display: block; width: 100%; height: auto; }
+.shot.phone { max-width: 240px; }
+.shot figcaption { padding: 6px 10px; font-size: 13px; color: #555; background: #f7f7f7; }
+.dnotes h4 { margin: 8px 0 4px; }
+.dnotes ul, .dnotes ol { margin: 0; padding-left: 22px; }
+.dnotes li { margin: 6px 0; font-size: 14px; }
+kbd { border: 1px solid #bbb; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; background: #fafafa; }
+@media (max-width: 900px) { .dsg { grid-template-columns: minmax(0, 1fr); } }
+@media print { .dsg { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .shot { break-inside: avoid; } }

@@ -1,10 +1,24 @@
 // 講義：從 tw-episodes.js（影片的資料）自動帶出每部的指令與「完整程式碼」，
 // 再搭配 tw-handout-notes.js 的重點整理、速查表、設計稿對照表。
-import { EPISODES } from './tw-episodes.js';
-import { NOTES, CHEAT, DESIGN } from './tw-handout-notes.js';
-import { FILE_WHY, LINE_NOTES, STEP_WHY } from './tw-handout-annot.js';
+import { EPISODES as EPISODES1 } from './tw-episodes.js';
+import { NOTES as NOTES1, CHEAT, DESIGN } from './tw-handout-notes.js';
+import { FILE_WHY as FILE_WHY1, LINE_NOTES as LINE_NOTES1, STEP_WHY as STEP_WHY1 } from './tw-handout-annot.js';
+import { EPISODES2 } from './tw2-episodes.js';
+import { NOTES2, ROUTER_CHEAT } from './tw2-notes.js';
+import { FILE_WHY2, LINE_NOTES2, LINE_NOTES3, STEP_WHY2 } from './tw2-annot.js';
+import { TEMPLATES } from './tw2-code.js';
+import { FILE_WHY4, LINE_NOTES4, STEP_WHY4, applyInserts } from './tw2-annot-checkout.js';
+import { FILE_WHY5, LINE_NOTES5, INSERTS5, STEP_WHY5 } from './tw2-annot-brand.js';
 import { addedLines, imagePathsOf } from './tw-handout-diff.js';
 import { importsOf, exportsOf, resolveSpec, describeImport, describeExport, buildGraph } from './tw-handout-imports.js';
+
+// 第一階段頁面（預設）只看第 1～13 部；第二階段頁面（html 的 data-stage="2"）接著看第 14 部起，前面的檔案仍用來算 import 與「回頭修改」的差異
+const STAGE = Number(document.documentElement.dataset.stage || 1);
+const EPISODES = STAGE === 2 ? [...EPISODES1, ...EPISODES2] : EPISODES1;
+const NOTES = [...NOTES1, ...NOTES2];
+const FILE_WHY = { ...FILE_WHY1, ...FILE_WHY2, ...FILE_WHY4, ...FILE_WHY5 };
+const LINE_NOTES = applyInserts(applyInserts({ ...LINE_NOTES1, ...LINE_NOTES2, ...LINE_NOTES3, ...LINE_NOTES4, ...LINE_NOTES5 }), INSERTS5, {}, {});
+const STEP_WHY = [...STEP_WHY1, ...STEP_WHY2, STEP_WHY4, STEP_WHY5];
 
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const rows = (list, cell) => list.map((r) => '<tr>' + r.map((c, i) => `<${cell(i)}>${c}</${cell(i)}>`).join('') + '</tr>').join('');
@@ -23,7 +37,7 @@ const GRAPH = buildGraph(ALL);
 // 第 i 部之前（不含），這個檔案最後一次出現的版本：[第幾部, 程式碼]
 function prevOf(i, name) {
   for (let j = i - 1; j >= 0; j--) for (const st of EPISODES[j].steps) if (st.file === name) { let last; for (const s2 of EPISODES[j].steps) if (s2.file === name) last = s2.code; return [j + 1, last]; }
-  return null;
+  return TEMPLATES[name] ? [0, TEMPLATES[name]] : null;   // 0 ＝ Vite 範本原本的版本
 }
 // 每一張圖第一次出現在第幾部
 const IMG_FIRST = new Map();
@@ -83,7 +97,7 @@ function cover() {
     <ul class="meta">
       <li>搭配動畫版：<a href="tw-story.html">tw-story.html</a>（13 部，講義的章節與動畫一一對應）</li>
       <li>需要：Node.js 20.19 以上（或 22.12 以上）、VS Code、一個六角 API 路徑</li>
-      <li>範圍：只做<b>首頁</b>；產品列表、品牌介紹、商品細節、結帳是第二階段</li>
+      <li>範圍：只做<b>首頁</b>；路由、產品列表、商品細節、結帳、品牌介紹在<a href="tailwind-react-handout-2.html">第二階段講義</a></li>
       <li>每個檔案的程式碼旁邊有<b>逐行說明</b>（為什麼這樣寫），每一部有「<b>每一步為什麼要這樣做</b>」；import／export 與路徑看<a href="#guide">最前面的說明</a></li><li>程式碼是驗證過的版本，和動畫版<b>完全一致</b></li>
     </ul>
   </header>`;
@@ -100,6 +114,15 @@ function overview() {
     <p class="hint">資料怎麼流動：<b>畫面（元件）</b> ← <b>useProducts／useCart</b> ← <b>api.ts</b> ← <b>axios</b> ← <b>六角 API</b>。每一層只做一件事。</p></section>`;
 }
 
+function designBlock(d) {
+  const shots = d.images.map((im) => `<figure class="shot ${im.cls || ''}"><img src="${im.src}" alt="設計稿截圖" loading="lazy"><figcaption>${im.cap}</figcaption></figure>`).join('');
+  return `<div class="design-cmp"><h3>🎨 ${d.title}</h3>
+    <div class="dsg"><div class="shots">${shots}</div>
+      <div class="dnotes"><h4>🔎 這裡要注意什麼</h4><ul>${d.notice.map((x) => `<li>${x}</li>`).join('')}</ul>
+        <h4>📏 怎麼量尺寸</h4><ol>${d.measure.map((x) => `<li>${x}</li>`).join('')}</ol></div></div>
+    <h4>⌨️ 程式要怎麼寫（量到的尺寸 → 寫法）</h4>${table(['項目', '設計稿量到的', '我們的寫法'], d.table)}</div>`;
+}
+
 function episode(ep, i) {
   const n = NOTES[i], files = filesOf(ep), cmds = commandsOf(ep);
   const points = n.points.map((p) => `<li>${p}</li>`).join('');
@@ -110,7 +133,7 @@ function episode(ep, i) {
     const prev = prevOf(i, name);
     const added = prev ? addedLines(prev[1], code) : null;
     const status = prev
-      ? `<p class="status edit">✏️ <b>回頭修改前面做過的檔案</b>（上一次是第 ${prev[0]} 部）。<span class="legend"><i class="sw2"></i>藍色底的行 ＝ 這一部新增或修改的（${added.size} 行），其他行和上次一樣。</span></p>`
+      ? `<p class="status edit">✏️ <b>${prev[0] === 0 ? '修改範本原本就有的檔案' : '回頭修改前面做過的檔案'}</b>（${prev[0] === 0 ? '原本是 Vite 範本附的版本' : '上一次是第 ' + prev[0] + ' 部'}）。<span class="legend"><i class="sw2"></i>藍色底的行 ＝ 這一部新增或修改的（${added.size} 行），其他行和上次一樣。</span></p>`
       : `<p class="status new">🆕 <b>這一部新增的檔案</b>，整個檔案都是新的。</p>`;
     const rows = annotate(name, code, added).map((r) => `<div class="r${r.n ? ' has' : ''}${r.add ? ' add' : ''}"><code class="c">${esc(r.l) || ' '}</code>${r.n ? `<div class="n">${r.n}</div>` : ''}</div>`).join('');
     return `<figure class="file ${lines <= 28 ? 'small' : ''}" data-i="${i}" data-k="${k}"><figcaption><b>${esc(name)}</b><span>${lines} 行</span><button class="copy" type="button">複製</button></figcaption>
@@ -118,11 +141,11 @@ function episode(ep, i) {
   }).join('');
   const why = (STEP_WHY[i] || []).map(([a, b]) => `<li><b>${a}</b><span class="because">為什麼：${b}</span></li>`).join('');
   const whyBlock = why ? `<h3>一步一步做（每一步為什麼要這樣做）</h3><ol class="steps">${why}</ol>` : '';
-  const newImgs = [...IMG_FIRST].filter(([, e]) => e === i).map(([p]) => p);
+  const newImgs = [...IMG_FIRST].filter(([, e]) => e === i).map(([p]) => p).concat(n.images || []);
   const imgBlock = newImgs.length ? `<h3>這一部要用到的圖片（確認 <code>public/images</code> 裡都有）</h3>${imgTable(newImgs)}<p class="note">圖片放哪、路徑為什麼這樣寫：看最前面的「<a href="#images">圖片放哪裡、路徑怎麼寫</a>」。</p>` : '';
   const codeBlock = files.length ? `<div class="codes"><h3>完整程式碼（這一部完成後）<small>右邊的說明是講義加的，複製下來的程式碼是乾淨的</small></h3>${fileBlocks}</div>` : '';
   return `<section class="ep" id="ep${i + 1}"><h2><span class="no">第 ${i + 1} 部</span>${esc(ep.title)}</h2>
-    <p class="goal">🎯 ${n.goal}</p><h3>重點整理</h3><ul class="points">${points}</ul>${tips}${whyBlock}${imgBlock}${cmdBlock}${codeBlock}</section>`;
+    <p class="goal">🎯 ${n.goal}</p><h3>重點整理</h3><ul class="points">${points}</ul>${tips}${n.design ? designBlock(n.design) : ''}${whyBlock}${imgBlock}${cmdBlock}${codeBlock}</section>`;
 }
 
 function cheat() {
@@ -245,7 +268,7 @@ function guide() {
 // 圖片：放在專案的 public/images → 程式裡寫 /images/…（路徑是從程式碼掃出來的；檔名已對照過 a50134/I-need-this 的 assets/images）
 const imgRow = (p) => {
   const user = [...new Set(Object.entries(ALL).filter(([, c]) => imagePathsOf(c).includes(p)).map(([f]) => base(f)))];
-  return `<tr><td>☐</td><td><code>public/${p}</code></td><td><code>/${p}</code></td><td>${user.map((x) => `<code>${x}</code>`).join('、')}</td></tr>`;
+  return `<tr><td>☐</td><td><code>public/${p}</code></td><td><code>/${p}</code></td><td>${user.length ? user.map((x) => `<code>${x}</code>`).join('、') : '<code>seed.mjs</code>（存進 API，商品卡顯示）'}</td></tr>`;
 };
 const imgTable = (list) => `<table><thead><tr><th>有了嗎</th><th>檔案在你專案的位置</th><th>程式裡怎麼寫</th><th>用在</th></tr></thead><tbody>${list.map(imgRow).join('')}</tbody></table>`;
 
@@ -284,9 +307,72 @@ function images() {
   </section>`;
 }
 
+const FIRST2 = EPISODES1.length;
+const TREE2 = `src/
+├─ main.tsx              ← 加上 BrowserRouter（第 14 部）
+├─ App.tsx               ← 改成 Routes（網址對照表）；第 16 部加 products/:id；第 17 部加 cart、checkout、order/:id；第 18 部加 brand
+├─ types.ts、api.ts      ← 第 15 部 getAllProducts；第 16 部 getProduct
+├─ context/               ← 第 17 部：CartContext／CartProvider 改成共享整份購物車
+├─ data/checkout.ts      ← 運費、送貨與付款選項、價格格式
+├─ data/brand.ts         ← 品牌介紹的文字與圖片（第 18 部）
+├─ layouts/
+│  └─ Layout.tsx         ← 每頁共用：導覽列＋Outlet＋頁尾
+├─ pages/
+│  ├─ HomePage.tsx       ← 首頁（內容從 App 搬來）
+│  ├─ ProductsPage.tsx   ← 所有商品（第 15 部）
+│  ├─ ProductDetailPage.tsx ← 商品細節（第 16 部）
+│  ├─ CartPage.tsx       ← 結帳第 1 步：購物車（第 17 部）
+│  ├─ CheckoutPage.tsx   ← 第 2 步：填寫資料
+│  ├─ OrderPage.tsx      ← 第 3 步：訂單確認
+│  └─ BrandPage.tsx      ← 品牌介紹（第 18 部）
+├─ data/
+│  └─ categories.ts      ← 側欄選項
+├─ hooks/
+│  ├─ useAllProducts.ts  ← 讀全部商品
+│  ├─ useProduct.ts      ← 讀單一商品
+│  └─ useOrder.ts        ← 讀訂單
+└─ components/
+   ├─ Breadcrumb.tsx、CategorySidebar.tsx
+   ├─ ProductListItem.tsx、Pagination.tsx
+   ├─ ProductGallery.tsx、QuantityInput.tsx
+   ├─ ProductIntro.tsx、ProductTabs.tsx
+   ├─ CheckoutSteps.tsx、OrderSummary.tsx、SectionTitle.tsx、FormField.tsx
+   └─ BrandLines.tsx、BrandBlock.tsx`;
+function cover2() {
+  return `<header class="cover">
+    <p class="kicker">Tailwind v4 ＋ React ＋ TypeScript ＋ React Router</p>
+    <h1>I need this 第二階段<br>手把手講義</h1>
+    <p class="sub">接著第一階段的首頁，照 Figma 設計稿做出其他頁面：路由、產品列表、商品細節、結帳、品牌介紹。</p>
+    <ul class="meta">
+      <li>要先完成<a href="tailwind-react-handout.html">第一階段講義</a>（第 1～13 部），本階段從第 14 部開始</li>
+      <li>格式和第一階段一樣：每步為什麼、每個檔案為什麼、逐行說明；<b>藍色底的行＝這一部新增或修改的</b></li>
+      <li>每一頁都有<b>設計稿截圖</b>，旁邊寫「要注意什麼、怎麼量尺寸、程式怎麼寫」</li>
+      <li>圖片：第二階段直接用你專案 <code>public/images/img</code> 裡的檔名（例如 <code>精油產品 01.jpg</code>）</li>
+      <li>程式碼是照講義順序一步一步放進全新專案，每一步都跑過 <code>tsc</code>、每一部跑過 <code>vite build</code> 的版本</li>
+    </ul>
+  </header>`;
+}
+function toc2() {
+  const eps = EPISODES.map((e, i) => (i >= FIRST2 ? `<li><a href="#ep${i + 1}"><span class="no">${pad(i + 1)}</span>${esc(e.title)}</a></li>` : '')).join('');
+  return `<nav class="toc"><h2>目錄</h2><ol class="tlist">${eps}</ol>
+    <ol class="tlist extra"><li><a href="#cheat"><span class="no">附</span>React Router 速查表</a></li><li><a href="tailwind-react-handout.html"><span class="no">回</span>第一階段講義</a></li></ol></nav>`;
+}
+function overview2() {
+  return `<section class="ov"><h2>這一階段新增什麼</h2><p>在第一階段的專案上，新增與修改這些檔案：</p><pre class="tree">${esc(TREE2)}</pre>
+    <p class="hint">網址怎麼對應畫面：<b>網址</b> → <b>Routes</b>（對照表）→ <b>Layout</b>（外框）→ <b>Outlet</b>（洞）→ <b>某一頁</b>。</p></section>`;
+}
+function cheat2() {
+  return `<section class="ep cheat" id="cheat"><h2><span class="no">附 1</span>React Router 速查表</h2>${table(['名稱', '寫法', '用途'], ROUTER_CHEAT)}</section>`;
+}
+
 const doc = document.getElementById('doc');
-doc.innerHTML = cover() + toc() + overview() + guide() + images() + EPISODES.map(episode).join('') + cheat() + design()
-  + '<footer class="end"><p>講義的程式碼來自驗證過的教學資料，和動畫版一致。</p></footer>';
+if (STAGE === 2) {
+  doc.innerHTML = cover2() + toc2() + overview2() + EPISODES.map((e, i) => (i >= FIRST2 ? episode(e, i) : '')).join('') + cheat2()
+    + '<footer class="end"><p>講義的程式碼來自驗證過的教學資料。</p></footer>';
+} else {
+  doc.innerHTML = cover() + toc() + overview() + guide() + images() + EPISODES.map(episode).join('') + cheat() + design()
+    + '<footer class="end"><p>講義的程式碼來自驗證過的教學資料，和動畫版一致。</p></footer>';
+}
 
 // 程式碼用 textContent 放進去（不會被當成 HTML），並接上複製按鈕
 doc.querySelectorAll('figure.file').forEach((fig) => {
