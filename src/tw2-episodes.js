@@ -1,6 +1,7 @@
 // 第二階段：第 14 部起（講義用；每個步驟的程式碼都用真的 Vite + tsc + vite build 驗證過）。
 import * as K from './tw2-code.js';
 import * as D from './tw2-code-detail.js';
+import * as O from './tw2-code-checkout.js';
 
 export const EPISODES_4 = [
   {
@@ -54,4 +55,27 @@ export const EPISODES_5 = [
     ],
   },
 ];
-export const EPISODES2 = [...EPISODES_4, ...EPISODES_5];
+export const EPISODES_6 = [
+  {
+    title: '結帳：購物車、填寫資料、訂單確認',
+    steps: [
+      { say: 'types.ts 新增訂單的型別。', file: 'src/types.ts', code: O.TYPES_ORDER },
+      { say: 'api.ts：改數量、移除、建立訂單、讀訂單、付款。', file: 'src/api.ts', code: O.API_ORDER },
+      { say: 'CartContext：共享整份購物車。', file: 'src/context/CartContext.ts', code: O.CART_CONTEXT_FULL, broken: true },
+      { say: 'CartProvider：整份 cart、改數量、移除。', file: 'src/context/CartProvider.tsx', code: O.CART_PROVIDER_FULL },
+      { say: '結帳用的固定資料。', file: 'src/data/checkout.ts', code: O.CHECKOUT_DATA },
+      { say: '三步驟列。', file: 'src/components/CheckoutSteps.tsx', code: O.STEPS },
+      { say: '訂單金額（總金額、運費、應付）。', file: 'src/components/OrderSummary.tsx', code: O.SUMMARY },
+      { say: '區塊標題。', file: 'src/components/SectionTitle.tsx', code: O.SECTION_TITLE },
+      { say: '第 1 步：購物車頁。', file: 'src/pages/CartPage.tsx', code: O.CART_PAGE },
+      { say: '表單欄位。', file: 'src/components/FormField.tsx', code: O.FORM_FIELD },
+      { say: '第 2 步：填寫資料頁。', file: 'src/pages/CheckoutPage.tsx', code: O.CHECKOUT_PAGE },
+      { say: '讀訂單的 Hook。', file: 'src/hooks/useOrder.ts', code: O.USE_ORDER },
+      { say: '第 3 步：訂單確認頁。', file: 'src/pages/OrderPage.tsx', code: O.ORDER_PAGE },
+      { say: 'App 新增三條路由。', file: 'src/App.tsx', code: O.APP_CHECKOUT },
+      { say: '導覽列購物車連到 /cart。', file: 'src/components/Navbar.tsx', code: O.NAV_CART },
+      { say: '確認可以建置。', term: ['$ npm run build', '', '> tsc -b && vite build', '', '✓ built'] },
+    ],
+  },
+];
+export const EPISODES2 = [...EPISODES_4, ...EPISODES_5, ...EPISODES_6];
