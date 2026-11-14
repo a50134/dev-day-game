@@ -415,7 +415,7 @@ ${USER_DROPDOWN}          ) : (
 export const NAV_1 = `function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 lg:h-22">
+      <nav className="mx-auto flex h-18 max-w-332 items-center justify-between px-4 lg:h-22">
 ${NAV_LOGO}      </nav>
     </header>
   )
@@ -430,7 +430,7 @@ ${NAV_LINKS}
 function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 lg:h-22">
+      <nav className="mx-auto flex h-18 max-w-332 items-center justify-between px-4 lg:h-22">
 ${NAV_LOGO}
         <div className="hidden items-center gap-8 lg:flex">
 ${NAV_SEARCH}
@@ -454,7 +454,7 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 lg:h-22">
+      <nav className="mx-auto flex h-18 max-w-332 items-center justify-between px-4 lg:h-22">
 ${NAV_LOGO}
         <div className="hidden items-center gap-8 lg:flex">
 ${NAV_SEARCH}
@@ -491,7 +491,7 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 lg:h-22">
+      <nav className="mx-auto flex h-18 max-w-332 items-center justify-between px-4 lg:h-22">
 ${NAV_LOGO}
         <div className="hidden items-center gap-8 lg:flex">
 ${NAV_SEARCH}
@@ -523,7 +523,7 @@ ${withCount ? '  const { count } = useCart()\n' : ''}  const [user, setUser] = u
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 lg:h-22">
+      <nav className="mx-auto flex h-18 max-w-332 items-center justify-between px-4 lg:h-22">
 ${NAV_LOGO}
         <div className="hidden items-center gap-8 lg:flex">
 ${NAV_SEARCH}
@@ -567,10 +567,10 @@ export const HERO_1 = `import Button from './Button'
 
 function Hero() {
   return (
-    <section className="relative h-185 overflow-hidden">
+    <section className="relative h-185 overflow-hidden lg:h-248">
       <img src="/images/hero-03.png" alt="" className="absolute inset-0 size-full object-cover" />
 
-      <div className="relative mx-auto flex h-full max-w-7xl items-end px-3 pb-15 md:items-center md:px-4 md:pb-0">
+      <div className="relative mx-auto flex h-full max-w-332 items-end px-3 pb-15 md:items-center md:px-4 md:pb-0">
 ${HERO_BOX('        ', '生活小物的靜謐時光', '用小物打造專屬的心靈港灣')}      </div>
     </section>
   )
@@ -612,7 +612,7 @@ function Hero() {
   const [current, setCurrent] = useState(0)
 
   return (
-    <section className="relative h-185 overflow-hidden">
+    <section className="relative h-185 overflow-hidden lg:h-248">
       {slides.map((slide, index) => (
         <div
           key={slide.title}
@@ -623,7 +623,7 @@ function Hero() {
         >
           <img src={slide.image} alt="" className="size-full object-cover" />
 
-          <div className="absolute inset-0 mx-auto flex max-w-7xl items-end px-3 pb-15 md:items-center md:px-4 md:pb-0">
+          <div className="absolute inset-0 mx-auto flex max-w-332 items-end px-3 pb-15 md:items-center md:px-4 md:pb-0">
             <div className="w-full bg-n-60/40 px-4 py-8 text-white backdrop-blur-sm md:w-159 md:px-12 md:py-16">
               <h1 className="h1 mb-3 md:mb-4">{slide.title}</h1>
               <p className="h3 mb-6 md:mb-10">{slide.subtitle}</p>
@@ -709,11 +709,11 @@ export default FeatureSection
 
 export const FEATURE_2 = FEATURE_1.replace(
   '  imageAlt: string\n  children: ReactNode',
-  '  imageAlt: string\n  reverse?: boolean\n  leaf?: ReactNode\n  children: ReactNode',
+  '  imageAlt: string\n  imageClassName?: string\n  reverse?: boolean\n  leaf?: ReactNode\n  children: ReactNode',
 )
   .replace(
     'function FeatureSection({ image, imageAlt, children }: FeatureSectionProps) {',
-    'function FeatureSection({ image, imageAlt, reverse = false, leaf, children }: FeatureSectionProps) {',
+    'function FeatureSection({ image, imageAlt, imageClassName, reverse = false, leaf, children }: FeatureSectionProps) {',
   )
   .replace(
     '      <div className="flex flex-col items-center md:my-8 md:flex-row lg:my-30">',
@@ -734,6 +734,14 @@ export const FEATURE_2 = FEATURE_1.replace(
         >
           {children}
         </div>`,
+  )
+  .replace(
+    '        <img src={image} alt={imageAlt} className="w-full px-3 pt-8 md:w-1/2 md:p-0" />',
+    `        <img
+          src={image}
+          alt={imageAlt}
+          className={['w-full px-3 pt-8 md:w-1/2 md:p-0 lg:object-cover', imageClassName].join(' ')}
+        />`,
   )
   .replace('      </div>\n    </section>', '      </div>\n      {leaf}\n    </section>');
 
@@ -772,7 +780,7 @@ const LEAF_3 = `        leaf={
           />
         }
 `;
-const DIVIDER = `      <img src="/images/svg/graphic-02.svg" alt="" className="mx-auto w-full max-w-7xl px-3 lg:py-10" />
+const DIVIDER = `      <img src="/images/svg/graphic-02.svg" alt="" className="mx-auto w-full max-w-240 px-3 py-2 lg:py-14" />
 `;
 export const PROMO_V1 = `import Button from './Button'
 import FeatureSection from './FeatureSection'
@@ -792,11 +800,13 @@ export default PromoSections
 const FS1_WITH_LEAF = `      <FeatureSection
         image="/images/section-01.png"
         imageAlt="香水與織品"
+        imageClassName="lg:h-158"
 ${LEAF_1}      >
 ${PROMO_1.split('\n').slice(1).join('\n')}`;
 const FS2_WITH_LEAF = `      <FeatureSection
         image="/images/section-02.png"
         imageAlt="手工皂與刷具"
+        imageClassName="lg:h-148.75"
         reverse
 ${LEAF_3}      >
 ${PROMO_2.split('\n').slice(1).join('\n')}`;
@@ -1030,7 +1040,7 @@ const CARD_BODY = (withAdd) => `    <article className="group w-64 shrink-0 md:w
         <img
           src={product.imageUrl}
           alt={product.title}
-          className="aspect-4/3 w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          className="aspect-3/2 w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
       </a>
       <div className="px-2 py-4 text-center transition-colors group-hover:bg-primary-80">
@@ -1092,13 +1102,13 @@ function HotProducts() {
   const { products, loading, error } = useProducts('熱賣')
 
   return (
-    <section className="relative py-20 lg:py-30">
-      <div className="mx-auto max-w-7xl px-3 md:px-4">
+    <section className="relative py-14 lg:py-24">
+      <div className="mx-auto max-w-332 px-3 md:px-4">
         <h2 className="h2 mb-4">默默熱賣中</h2>
-        <p className="t-m mb-8 text-n-60">用過的人都不想換回去的東西</p>
+        <p className="t-m mb-8 text-n-60 lg:mb-14">用過的人都不想換回去的東西</p>
 
 ${HOT_STATES}
-        <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-4 md:overflow-visible">
+        <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-4 md:gap-6 md:overflow-visible">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -1306,9 +1316,9 @@ const items: Item[] = [
 export const RESP_1 = `${RESP_DATA}
 function Responsibility() {
   return (
-    <section className="bg-[url(/images/bgc-img.png)] bg-cover bg-center py-20 lg:py-30">
-      <div className="mx-auto max-w-7xl px-3 md:px-4">
-        <h2 className="h2 mb-6 lg:mb-10">企業責任</h2>
+    <section className="bg-[url(/images/bgc-img.png)] bg-cover bg-center py-14 lg:py-24">
+      <div className="mx-auto max-w-332 px-3 md:px-4">
+        <h2 className="h2 mb-6 lg:mb-14">企業責任</h2>
 
         <div className="flex flex-col gap-2 md:h-120 md:flex-row">
           {items.map((item) => (
@@ -1338,9 +1348,9 @@ function Responsibility() {
   const [active, setActive] = useState(0)
 
   return (
-    <section className="bg-[url(/images/bgc-img.png)] bg-cover bg-center py-20 lg:py-30">
-      <div className="mx-auto max-w-7xl px-3 md:px-4">
-        <h2 className="h2 mb-6 lg:mb-10">企業責任</h2>
+    <section className="bg-[url(/images/bgc-img.png)] bg-cover bg-center py-14 lg:py-24">
+      <div className="mx-auto max-w-332 px-3 md:px-4">
+        <h2 className="h2 mb-6 lg:mb-14">企業責任</h2>
 
         <div className="flex flex-col gap-2 md:h-120 md:flex-row">
           {items.map((item, index) => {
@@ -1406,11 +1416,11 @@ ${SOCIALS}
 function Footer() {
   return (
     <footer className="bg-[url(/images/footer-bgc.jpg)] bg-cover bg-center text-white">
-      <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-12 text-center lg:flex-row lg:justify-between lg:text-left">
+      <div className="mx-auto flex max-w-332 flex-col gap-10 px-4 py-12 text-center lg:flex-row lg:justify-between lg:py-14 lg:text-left">
         <div>
-          <img src="/images/svg/logo_on dark.svg" alt="I need this" className="mx-auto h-12 lg:mx-0" />
+          <img src="/images/svg/logo_on dark.svg" alt="I need this" className="mx-auto h-12 lg:mx-0 lg:h-25" />
 
-          <ul className="mt-8 flex justify-center gap-6 lg:justify-start">
+          <ul className="mt-8 flex justify-center gap-6 lg:mt-10 lg:justify-start">
             {socials.map((social) => (
               <li key={social.name}>
                 <a
@@ -1425,11 +1435,11 @@ function Footer() {
           </ul>
         </div>
 
-        <div className="flex flex-col gap-8 lg:flex-row lg:gap-20">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-40">
           {columns.map((column) => (
             <div key={column.title}>
               <h3 className="h3 mb-4 lg:mb-6">{column.title}</h3>
-              <ul className="space-y-2 t-m">
+              <ul className="space-y-2 t-m lg:space-y-4">
                 {column.items.map((item) => (
                   <li key={item}>
                     <a href="#" className="hover:underline">
