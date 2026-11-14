@@ -1,5 +1,6 @@
 // 第二階段：第 14 部起（講義用；每個步驟的程式碼都用真的 Vite + tsc + vite build 驗證過）。
 import * as K from './tw2-code.js';
+import * as D from './tw2-code-detail.js';
 
 export const EPISODES_4 = [
   {
@@ -33,4 +34,24 @@ export const EPISODES_4 = [
     ],
   },
 ];
-export const EPISODES2 = [...EPISODES_4];
+export const EPISODES_5 = [
+  {
+    title: '商品細節頁',
+    steps: [
+      { say: 'types.ts 新增 ProductResponse。', file: 'src/types.ts', code: D.TYPES_DETAIL },
+      { say: 'api.ts 新增 getProduct。', file: 'src/api.ts', code: D.API_DETAIL },
+      { say: '新的 Hook：useProduct。', file: 'src/hooks/useProduct.ts', code: D.USE_PRODUCT },
+      { say: 'Context 的 add 可以指定數量。', file: 'src/context/CartContext.ts', code: D.CART_CONTEXT_QTY },
+      { say: 'Provider 的 add 傳 qty。', file: 'src/context/CartProvider.tsx', code: D.CART_PROVIDER_QTY },
+      { say: '圖片區：大圖＋縮圖。', file: 'src/components/ProductGallery.tsx', code: D.GALLERY },
+      { say: '數量加減。', file: 'src/components/QuantityInput.tsx', code: D.QUANTITY },
+      { say: '商品介紹分頁的內容。', file: 'src/components/ProductIntro.tsx', code: D.INTRO },
+      { say: '三個分頁籤。', file: 'src/components/ProductTabs.tsx', code: D.TABS },
+      { say: '組裝商品細節頁。', file: 'src/pages/ProductDetailPage.tsx', code: D.DETAIL_PAGE },
+      { say: 'App 新增 products/:id 路由。', file: 'src/App.tsx', code: D.APP_DETAIL },
+      { say: '首頁商品卡：按鈕搬走、改成連到細節頁。', file: 'src/components/ProductCard.tsx', code: D.CARD_NO_BUTTON },
+      { say: '確認可以建置。', term: ['$ npm run build', '', '> tsc -b && vite build', '', '✓ built'] },
+    ],
+  },
+];
+export const EPISODES2 = [...EPISODES_4, ...EPISODES_5];

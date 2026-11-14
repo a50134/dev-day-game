@@ -3,13 +3,13 @@
 import { EPISODES } from './tw-episodes.js';
 
 // 取得第一階段某個檔案「最後的版本」，第二階段在它上面修改
-const finalOf = (file) => {
+export const finalOf = (file) => {
   let out;
   for (const ep of EPISODES) for (const s of ep.steps) if (s.file === file) out = s.code;
   if (!out) throw new Error('找不到檔案：' + file);
   return out;
 };
-const swap = (code, from, to) => {
+export const swap = (code, from, to) => {
   if (!code.includes(from)) throw new Error('找不到要取代的文字：' + from.slice(0, 40));
   return code.replace(from, to);
 };
@@ -171,6 +171,18 @@ export const NAV_R = nav;
 // ───────────────────────── 第 15 部：產品列表 ─────────────────────────
 const OILS = `const LOCAL = '/images/img/'
 
+const PHOTOS = [1, 2, 3].map((n) => LOCAL + '單項商品照 0' + n + '.png')
+
+const CONTENT = [
+  '三種天然精油配方，無添加\\n・檜木：穩定情緒，帶來大地木質調\\n・尤加利：淨化空氣，提神不刺鼻\\n・佛手柑：柔和果香，增加空間溫度感\\n100% 純天然植物萃取，無酒精、無香精，不刺激寵物與孩童。',
+  '## 你有多久，沒有好好深呼吸？',
+  '將檜木、尤加利與佛手柑融合，喚醒空氣中那份久違的大自然清新。\\n只需數滴，即可轉換整個空間的氛圍，讓你瞬間沉靜下來。',
+  '## 居家儀式感，從味道開始',
+  '無論是早晨醒來、下班放鬆、或是睡前閱讀時，點上擴香石或水氧機，讓你的日常多一點「森林感」。',
+  '## 內含配方',
+  '三種無添加的天然精油：\\n・檜木：穩定情緒，帶來大地木質調\\n・尤加利：淨化空氣，提神不刺鼻\\n・佛手柑：柔和果香，增加空間溫度感',
+].join('\\n\\n')
+
 const oil = (title, label, price, image) => ({
   title,
   category: '精油',
@@ -178,10 +190,10 @@ const oil = (title, label, price, image) => ({
   origin_price: price + 100,
   unit: '瓶',
   description: label,
-  content: label,
+  content: CONTENT,
   is_enabled: 1,
   imageUrl: LOCAL + image,
-  imagesUrl: [LOCAL + image],
+  imagesUrl: PHOTOS,
 })
 
 const oils = [

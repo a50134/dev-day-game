@@ -8,6 +8,25 @@ const MEASURE = [
   '注意設計稿的尺寸是<b>沒有捲軸</b>的 1920 寬；有些瀏覽器會有 15px 的捲軸，量出來差一點點是正常的。',
 ];
 
+const DETAIL_TABLE = [
+  ['內容寬度', '1296，左邊 x=312', '<code>mx-auto max-w-332 px-4</code>'],
+  ['麵包屑 → 主圖', '桌面 82（麵包屑底到圖片頂）', '<code>lg:mt-20.5</code>'],
+  ['左右兩欄', '各 636，中間空 24', '<code>lg:grid-cols-2 lg:gap-6</code>'],
+  ['主圖', '636×526', '<code>aspect-636/526 w-full object-cover</code>'],
+  ['縮圖', '196×150，間距 24，離主圖 24', '<code>grid-cols-3 gap-6 mt-6</code>、<code>aspect-196/150</code>'],
+  ['標題', '32px 襯線，下方 2px 淡灰線', '<code>h3 lg:h2 border-b-2 border-n-20 pb-3</code>'],
+  ['價格', '24px 粗體', '<code>h5 lg:h4</code>'],
+  ['簡介', '16px 灰字，行高 24', '<code>t-r lg:t-m text-n-60</code>'],
+  ['「規格」「數量」標籤', '14px 粗體，寬 60', '<code>h7 w-15</code>'],
+  ['規格按鈕', '88×50，間距 22；選中綠框淺綠底', '<code>border px-6 py-3</code>、<code>gap-5.5</code>、<code>border-primary-100 bg-primary-80</code>'],
+  ['數量框', '242×58（框 1px＋內 56）', '<code>border w-60.5</code>、按鈕 <code>size-14</code>'],
+  ['加入購物車／加入收藏', '各 306×56，間距 24', '<code>grid-cols-2 gap-6</code>；Button 本來就是桌面 56 高'],
+  ['分頁籤列', '高 56，三等分，下方 2px 灰線', '<code>h-14 flex-1 border-b-2</code>'],
+  ['分頁籤內容上方', '約 40', '<code>pt-10</code>'],
+  ['規格卡', '526×246，淺綠底，內距 24', '<code>lg:grid-cols-[1fr_526px]</code>、<code>bg-primary-80 p-6</code>'],
+  ['段落分隔圖', '三個小芽 96×16，上下各 40', '<code>graphic-07.svg</code>、<code>my-10</code>'],
+];
+
 export const NOTES2 = [
   { goal: '用 React Router 讓網站有「很多頁」：網址是 / 顯示首頁、/products 顯示產品列表，而且換頁時導覽列、購物車數字都不會消失。',
     points: [
@@ -69,7 +88,44 @@ export const NOTES2 = [
         ['分頁與頁尾', '72', '<code>pb-18</code>'],
       ],
     } },
+  { goal: '照設計稿做出「商品細節」頁：大圖與縮圖、價格、規格與數量、加入購物車／收藏，下面是三個分頁籤。網址是 /products/商品編號，資料來自六角 API 的 /product/{id}。',
+    points: [
+      '<b>路徑參數</b>：路由寫 <code>products/:id</code>，頁面用 <code>useParams()</code> 讀出網址裡的 id。',
+      '<b>讀單一商品</b>：<code>getProduct(id)</code> 打 <code>/product/{id}</code>；<code>useProduct(id)</code> 在 id 改變時重讀，「讀取中」是<b>算出來的</b>，不用另外 <code>useState</code>。',
+      '<b>提早 return</b>：讀取中、失敗、找不到商品，各自 <code>return</code> 一個訊息；通過之後 TypeScript 就知道 <code>product</code> 一定有值。<b>Hook 要全部寫在提早 return 的前面</b>。',
+      '<b>受控元件</b>：<code>QuantityInput</code> 不自己存數字，數字放在頁面的 <code>qty</code>，元件只顯示、並通知 <code>onChange</code>。',
+      '<b>元件拆分</b>：Gallery（大圖縮圖）、QuantityInput（結帳頁會重用）、Tabs（只管切換）、Intro（內容）。',
+      '<b>內容放在 API</b>：介紹文字存在商品的 <code>content</code>，約定「第一段＝簡介、<code>## </code> 開頭＝小標題」，用 <code>split</code>、<code>startsWith</code>、<code>slice</code> 拆開。',
+      '<b>首頁商品卡的按鈕搬走</b>：「加入購物車」回到它該在的細節頁，首頁卡片整張連到細節頁（<code>Link</code>）。首頁的高度也因此和設計稿對上。',
+      '購物車的 <code>add(productId, qty = 1)</code> 多了數量參數，加了預設值，所以舊的寫法不會壞。',
+    ],
+    tips: [
+      '第 15 部的 <code>seed.mjs</code> 這次多放了詳細介紹（<code>content</code>）和 3 張細節照（<code>imagesUrl</code>）。<b>已經在第 15 部跑過 seed 的人</b>：seed 看到同名商品會略過，所以請先到六角後台把那 9 個精油商品刪掉，再重跑一次 seed。',
+      '設計稿的「規格」（10ml／20ml）和「加入收藏」，六角 API 都沒有對應功能，所以只做畫面：選了規格不會影響價格，收藏不會真的存起來。',
+      '設計稿的標題是很長的行銷文案（例如「森呼吸」純植薰香精油瓶｜沉靜森調 X 居家療癒感）；我們的商品標題比較短，所以頁面上標題會是一行。設計稿的分頁籤圖示、顧客評價、售後服務沒有內容畫面，這裡的分頁籤沒有圖示，內容是簡單的占位文字。',
+      '圖片網址存在 API 裡是 <code>/images/img/單項商品照 01.png</code> 這種<b>相對路徑</b>，網站打開時會從你自己的 <code>public/images/img</code> 載入。',
+    ],
+    images: ['images/img/單項商品照 01.png', 'images/img/單項商品照 02.png', 'images/img/單項商品照 03.png'],
+    design: {
+      title: '設計稿對照：商品細節（桌面 1920 ＋ 手機）',
+      images: [
+        { src: 'tw-assets/design/detail-desktop.jpg', cap: '桌面版（1920 寬）。紅色是我量出來的尺寸，對照下面的表。', cls: 'wide' },
+        { src: 'tw-assets/design/detail-mobile.jpg', cap: '手機版（只截上半部）：數量框和按鈕滿寬、上下排；分頁籤放不下，可以左右滑。', cls: 'phone' },
+      ],
+      notice: [
+        '<b>左右兩欄各 636、中間空 24</b>（636＋24＋636＝1296）。左欄是圖片區，右欄是商品資訊；手機是上下排。',
+        '<b>圖片是固定寬高比</b>：主圖 636:526、縮圖 196:150。寫 <code>aspect-</code> 比寫死高度好，因為寬度會跟著螢幕變。',
+        '<b>「規格」「數量」兩個標籤寬度要一樣</b>（60px），按鈕和數量框才會左邊對齊。',
+        '<b>選中的規格</b>是綠框＋淺綠底，沒選的是灰框；加入收藏是「空心＋框」的按鈕，Button 的 <code>unfill</code> 款本來沒框，所以用 <code>className</code> 補上。',
+        '<b>分頁籤被選中的那條綠線，要蓋住下面的灰線</b>（不是疊在上面），所以用 <code>-mb-0.5</code>（−2px）往下移。',
+        '<b>手機版的分頁籤放不下</b>：設計稿的分頁籤列比螢幕寬，所以做成可以左右滑（<code>overflow-x-auto</code>），每個固定寬、不縮小（<code>shrink-0</code>）。',
+        '手機版設計稿的畫面寬度是 463（右邊超出的是分頁籤），內容寬 351（左右各 16），我們用 375 的手機對照。',
+      ],
+      measure: MEASURE,
+      table: DETAIL_TABLE,
+    } },
 ];
+
 
 export const ROUTER_CHEAT = [
   ['BrowserRouter', '<code>&lt;BrowserRouter&gt;&lt;App /&gt;&lt;/BrowserRouter&gt;</code>', '包在最外面，讓所有元件讀得到網址'],

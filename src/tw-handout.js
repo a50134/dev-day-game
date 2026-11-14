@@ -5,7 +5,7 @@ import { NOTES as NOTES1, CHEAT, DESIGN } from './tw-handout-notes.js';
 import { FILE_WHY as FILE_WHY1, LINE_NOTES as LINE_NOTES1, STEP_WHY as STEP_WHY1 } from './tw-handout-annot.js';
 import { EPISODES2 } from './tw2-episodes.js';
 import { NOTES2, ROUTER_CHEAT } from './tw2-notes.js';
-import { FILE_WHY2, LINE_NOTES2, STEP_WHY2 } from './tw2-annot.js';
+import { FILE_WHY2, LINE_NOTES2, LINE_NOTES3, STEP_WHY2 } from './tw2-annot.js';
 import { TEMPLATES } from './tw2-code.js';
 import { addedLines, imagePathsOf } from './tw-handout-diff.js';
 import { importsOf, exportsOf, resolveSpec, describeImport, describeExport, buildGraph } from './tw-handout-imports.js';
@@ -15,7 +15,7 @@ const STAGE = Number(document.documentElement.dataset.stage || 1);
 const EPISODES = STAGE === 2 ? [...EPISODES1, ...EPISODES2] : EPISODES1;
 const NOTES = [...NOTES1, ...NOTES2];
 const FILE_WHY = { ...FILE_WHY1, ...FILE_WHY2 };
-const LINE_NOTES = { ...LINE_NOTES1, ...LINE_NOTES2 };
+const LINE_NOTES = { ...LINE_NOTES1, ...LINE_NOTES2, ...LINE_NOTES3 };
 const STEP_WHY = [...STEP_WHY1, ...STEP_WHY2];
 
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -308,25 +308,29 @@ function images() {
 const FIRST2 = EPISODES1.length;
 const TREE2 = `src/
 ├─ main.tsx              ← 加上 BrowserRouter（第 14 部）
-├─ App.tsx               ← 改成 Routes（網址對照表）
-├─ api.ts                ← 新增 getAllProducts（第 15 部）
+├─ App.tsx               ← 改成 Routes（網址對照表）；第 16 部加 products/:id
+├─ types.ts、api.ts      ← 第 15 部 getAllProducts；第 16 部 getProduct
 ├─ layouts/
 │  └─ Layout.tsx         ← 每頁共用：導覽列＋Outlet＋頁尾
 ├─ pages/
 │  ├─ HomePage.tsx       ← 首頁（內容從 App 搬來）
-│  └─ ProductsPage.tsx   ← 所有商品
+│  ├─ ProductsPage.tsx   ← 所有商品（第 15 部）
+│  └─ ProductDetailPage.tsx ← 商品細節（第 16 部）
 ├─ data/
 │  └─ categories.ts      ← 側欄選項
 ├─ hooks/
-│  └─ useAllProducts.ts  ← 讀全部商品
+│  ├─ useAllProducts.ts  ← 讀全部商品
+│  └─ useProduct.ts      ← 讀單一商品
 └─ components/
    ├─ Breadcrumb.tsx、CategorySidebar.tsx
-   └─ ProductListItem.tsx、Pagination.tsx`;
+   ├─ ProductListItem.tsx、Pagination.tsx
+   ├─ ProductGallery.tsx、QuantityInput.tsx
+   └─ ProductIntro.tsx、ProductTabs.tsx`;
 function cover2() {
   return `<header class="cover">
     <p class="kicker">Tailwind v4 ＋ React ＋ TypeScript ＋ React Router</p>
     <h1>I need this 第二階段<br>手把手講義</h1>
-    <p class="sub">接著第一階段的首頁，照 Figma 設計稿做出其他頁面：路由、產品列表（之後是商品細節、結帳、品牌介紹）。</p>
+    <p class="sub">接著第一階段的首頁，照 Figma 設計稿做出其他頁面：路由、產品列表、商品細節（之後是結帳、品牌介紹）。</p>
     <ul class="meta">
       <li>要先完成<a href="tailwind-react-handout.html">第一階段講義</a>（第 1～13 部），本階段從第 14 部開始</li>
       <li>格式和第一階段一樣：每步為什麼、每個檔案為什麼、逐行說明；<b>藍色底的行＝這一部新增或修改的</b></li>
