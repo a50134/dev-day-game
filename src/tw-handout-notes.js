@@ -51,7 +51,7 @@ export const NOTES = [
     ] },
   { goal: '做出導覽列：桌面版、手機版，以及假的登入狀態。',
     points: [
-      '圖片素材放 <code>public/images</code>（從舊專案 <code>assets/images</code> 複製），程式裡寫 <code>/images/...</code>。',
+      '圖片素材放 <code>public/images</code>（你的專案已經放好了；沒有的話從舊專案 <code>assets/images</code> 複製），程式裡寫 <code>/images/...</code>。',
       '固定在上方：<code>sticky top-0 z-50</code>；高度 <code>h-18</code>（72px）、<code>lg:h-22</code>（88px）。',
       'Tailwind 的數字：<b>1 單位 ＝ 4px</b>。',
       '<code>hidden lg:flex</code>：手機先隱藏，≥1024px 才顯示。手機的圖示用 <code>lg:hidden</code>。',
