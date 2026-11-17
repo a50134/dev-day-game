@@ -8,7 +8,7 @@ const HERO_1_BAD = C.HERO_1.replace('className="absolute inset-0 size-full objec
 const HERO_2_BAD = C.HERO_2.replace("    subtitle: '純植物精油，無化學添加，適合全家大小使用',\n", '');
 const ERR_SUB = "Property 'subtitle' is missing in type '{ image: string; title: string; }' but required in type 'Slide'.";
 
-const spec = list(['高度 740px、滿版大圖', '文字框 636 × 304，半透明、背景模糊', '指示點：桌面長條、手機圓點']);
+const spec = list(['高度：手機 740px、桌面 992px，滿版大圖', '文字框 636 × 304，半透明、背景模糊', '指示點：桌面長條、手機圓點']);
 const imgRule = list(['<code>absolute inset-0</code>：貼滿整個區塊（疊在上面）', '<code>size-full</code>：寬高 100%', '<code>object-cover</code>：填滿不變形，多的裁掉']);
 const dots = list(['手機：<code>size-2.5 rounded-full</code> ＝ 10px 圓點', '桌面：<code>md:h-2 md:w-18</code> ＝ 72×8 長條', '目前這張 <code>bg-primary-100</code>，其他 <code>bg-n-20</code>']);
 
@@ -30,7 +30,7 @@ const beats = [
   R('咦？只看到一張大圖，文字框跑哪去了？', 'surprised', { fx: '❗' }),
 
   chapter('老師點醒'),
-  T('想想看：這個 `section` 高度固定 740px，`img` 把它填滿了。那文字框排在 `img` 的哪裡？', 'normal'),
+  T('想想看：這個 `section` 高度固定（手機 740px、桌面 992px），`img` 把它填滿了。那文字框排在 `img` 的哪裡？', 'normal'),
   R('在圖片「下面」…被 `overflow-hidden` 裁掉了！', 'surprised', { fx: '❗' }),
   T('沒錯。我們要讓圖片「疊在最底下」，不佔位置。你記得 `absolute` 是什麼意思嗎？', 'happy'),
   hl(6, 6),

@@ -13,7 +13,7 @@ export const EPISODES_2 = [
       { say: '導覽列要用到 logo、搜尋、購物車等圖片。你之前做切版時已經有這些素材了。打開你之前的專案，把 assets 裡的 images 整個資料夾複製起來。', slide: ['① 打開你之前的切版專案（I need this）', '② 複製 assets/images 整個資料夾', '③ 貼到新專案的 public 資料夾底下'] },
       { say: '貼好後，路徑會是 public 斜線 images。放在 public 的檔案，網址會直接從根目錄開始，所以程式裡寫 斜線 images 斜線 svg 斜線 logo，就找得到。要確認 public/images/svg 裡有 logo、Cart、Search、Menu、Close 這幾個檔案。', slide: ['public/images/hero-01.png ...', 'public/images/svg/logo_on light.svg', 'public/images/svg/Cart.svg　Search.svg　Menu.svg　Close.svg', '程式裡寫成：/images/svg/Cart.svg'] },
       { say: '先做最簡單的：只有 logo。新增 components/Navbar.tsx。header 加上 sticky 和 top-0，捲動時會固定在最上面。z-50 讓它蓋在其他東西上面。', file: 'src/components/Navbar.tsx', code: C.NAV_1 },
-      { say: '看 nav 這一行。mx-auto 加 max-w-7xl，讓內容最寬 1280 像素並置中。flex 加 items-center 加 justify-between，左右兩邊分開、上下置中。高度手機是 h-18，也就是 72 像素；桌面 lg 以上是 h-22，88 像素，剛好對應設計稿。', anim: 'spacing', slide: ['h-18　＝ 72px（手機）', 'lg:h-22　＝ 88px（桌面）', 'Tailwind 的數字：1 ＝ 4px', 'lg ＝ 螢幕寬 ≥ 1024px'] },
+      { say: '看 nav 這一行。mx-auto 加 max-w-332，讓內容最寬 1328 像素（扣掉左右內距剛好 1296）並置中。flex 加 items-center 加 justify-between，左右兩邊分開、上下置中。高度手機是 h-18，也就是 72 像素；桌面 lg 以上是 h-22，88 像素，剛好對應設計稿。', anim: 'spacing', slide: ['h-18　＝ 72px（手機）', 'lg:h-22　＝ 88px（桌面）', 'Tailwind 的數字：1 ＝ 4px', 'lg ＝ 螢幕寬 ≥ 1024px'] },
       { say: '把導覽列放進畫面。App.tsx 改成放 Navbar，下面放一個很高的區塊，方便等一下測試固定在上方的效果。', file: 'src/App.tsx', code: C.APP_6 },
       { say: '現在左上角有 logo，往下捲，導覽列會一直固定在最上方，還有淡淡的陰影，這是 shadow-sm 的效果。', web: { url: URL, html: navBar('') + '<p style="margin:14px 0 0;color:#575757">往下捲，導覽列會固定在上面。</p>' } },
       { say: '接著加桌面版右邊的內容：搜尋框、兩個連結、購物車圖示、登入按鈕。連結的資料先放在 links 陣列，再用 map 一個一個畫出來，這樣之後想增加連結，只要加一行資料。', file: 'src/components/Navbar.tsx', code: C.NAV_2 },
@@ -31,8 +31,8 @@ export const EPISODES_2 = [
   {
     title: '首頁 Hero 輪播',
     steps: [
-      { say: '這一部做首頁最上面的大圖輪播。設計稿高度 740 像素，左邊有一塊半透明的文字框，下面有三個指示點，桌面是長條，手機是圓點。', slide: ['高度 740px、滿版大圖', '文字框 636 × 304，半透明、模糊背景', '指示點：桌面長條、手機圓點'] },
-      { say: '先做一張靜態的。新增 Hero.tsx。section 用 relative，因為裡面的圖片要用 absolute 疊在它上面。高度 h-185，也就是 740 像素。overflow-hidden 把超出的部分裁掉。', file: 'src/components/Hero.tsx', code: C.HERO_1 },
+      { say: '這一部做首頁最上面的大圖輪播。設計稿高度手機 740 像素、桌面 992 像素，左邊有一塊半透明的文字框，下面有三個指示點，桌面是長條，手機是圓點。', slide: ['高度 740px、滿版大圖', '文字框 636 × 304，半透明、模糊背景', '指示點：桌面長條、手機圓點'] },
+      { say: '先做一張靜態的。新增 Hero.tsx。section 用 relative，因為裡面的圖片要用 absolute 疊在它上面。高度 h-185，也就是 740 像素；桌面再加 lg:h-248，是 992 像素（1920 寬設計稿量出來的）。overflow-hidden 把超出的部分裁掉。', file: 'src/components/Hero.tsx', code: C.HERO_1 },
       { say: '圖片用 absolute 加 inset-0，貼滿整個區塊，size-full 是寬高都百分之百，object-cover 讓圖片填滿不變形，超出的地方裁掉。這個組合很常用，要記起來。', slide: ['absolute inset-0 size-full object-cover', '＝ 圖片貼滿、不變形、多的裁掉', '桌面常用：圖片當背景'] },
       { say: '文字框是 bg-n-60 斜線 40，就是 n-60 灰色、透明度百分之四十。backdrop-blur-sm 讓後面的圖片有一點模糊。md:w-159 是桌面寬度 636 像素，手機則是滿寬。位置：手機放在下面，桌面垂直置中。', slide: ['bg-n-60/40　半透明灰', 'backdrop-blur-sm　背景模糊', 'md:w-159　＝ 636px', 'items-end → md:items-center　手機在下、桌面置中'] },
       { say: '把 Hero 放進 App。Navbar 下面放一個 main，裡面是 Hero。', file: 'src/App.tsx', code: C.APP_7 },
