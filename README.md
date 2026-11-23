@@ -35,4 +35,5 @@ python3 serve.py
 - `node-video.html`：Node.js，6 部，從安裝做到排行榜 API 與前端串接。
 - `react-video.html`：React，7 部，從 Vite 建專案做到狀態、元件、串接 API、React Router、自訂 Hook。
 - `tw-story.html`：Tailwind v4 ＋ React ＋ TypeScript 的**動畫版**，13 部（`?ep=1`～`13`），照 Figma 設計稿「I need this」做出首頁（共用顏色／字型／按鈕、導覽列、輪播、熱賣商品串六角 API、購物車、頁尾）。老師 Lily 與新人演給你看：新人先試、做錯（紅線和畫面都是真的）、老師用問題點醒；自己播到完、不用按下一步、沒有聲音，可調播放速度與打字速度，每部約 3～8 分鐘。
+- `tw-plan.html`：10 天計畫（每天 10～15 分鐘，把產品列表、商品細節、結帳、品牌介紹做完，可每天打勾）。
 - `tailwind-react-handout.html`：這個系列的講義（每部重點、完整程式碼、速查表、設計稿對照表），可列印成 PDF。
